@@ -167,7 +167,7 @@ table{
             <hr>
             <div class="tab-content">
                 <div id="addNew" class="tab-pane fade ">
-                    <form @submit.prevent="addProduct" @reset.prevent="range = [1]; highlights = []" class="productform">
+                    <form @submit.prevent="addProduct" @reset.prevent="range = [1]; highlights = [];sizes=[]; shapes=[];" class="productform">
                         <div class="row">
                             <div class="col-12" align="center">
                                 <img id="blah" class="img"  src="http://placehold.it/180" alt="Product image" />
@@ -177,10 +177,14 @@ table{
                                 <input class="form-control" type="text" v-model="name" name="name" placeholder="Product Name" required>
                             </div>
                             <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
-                                <input class="form-control" type="number" v-model="size" name="size" placeholder="Product Size" required>
+                                <div v-for="(size, index1) in Sizerange" :key="index1">
+                                    <input class="form-control" type="number" v-model="sizes[index1]" name="size" @keydown.tab.prevent="addSize(index1)" placeholder="Product Size(Press tab to add more Sizes)">
+                                </div>
                             </div>
                             <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
-                                <input class="form-control" type="text" v-model="shape" name="shape" placeholder="Product Shape" required>
+                                <div v-for="(size, index1) in Shaperange" :key="index1">
+                                    <input class="form-control" type="text" v-model="shapes[index1]" name="shape" @keydown.tab.prevent="addShape(index1)" placeholder="Product Shape(Press tab to add more Shapes)" required>
+                                </div>
                             </div>
                             <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
                                 <input class="form-control" type="number" v-model="price" name="price" placeholder="Price" required>
@@ -209,10 +213,14 @@ table{
                                 <input class="form-control" type="text" v-model="editProduct.name" name="name" placeholder="Product Name" required>
                             </div>
                             <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
-                                <input class="form-control" type="number" v-model="editProduct.size" name="size" placeholder="Product Size" required>
+                                <div v-for="(hgl, index) in editProduct.size" :key="index">
+                                    <input class="form-control" type="number" v-model="editProduct.size[index]" name="size" @keydown.tab.prevent="editSize(index)" placeholder="Product Size(Press tab to add more sizes)" >
+                                </div>
                             </div>
                             <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
-                                <input class="form-control" type="text" v-model="editProduct.shape" name="shape" placeholder="Product Shape" required>
+                                <div v-for="(hgl, index) in editProduct.shape" :key="index">
+                                    <input class="form-control" type="text" v-model="editProduct.shape[index]" name="shape" @keydown.tab.prevent="editShape(index)" placeholder="Product Shape(Press tab to add more shape)">
+                                </div>
                             </div>
                             <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
                                 <input class="form-control" type="number" v-model="editProduct.price" name="price" placeholder="Price" required>
@@ -233,8 +241,7 @@ table{
                         <thead>
                             <tr>
                             <th style="width:10%">Sr. No.</th>
-                            <th scope="col-6">Name</th>
-                            <th scope="col">Size</th>
+                            <th scope="col-8">Name</th>
                             <th scope="col">Price</th>
                             </tr>
                         </thead>
@@ -242,7 +249,6 @@ table{
                             <tr v-for="(product, index) in products" :key="index" @click="editProductForm(product.id)">
                                 <th>{{index + 1}}.</th>
                                 <td>{{product.data().name}}</td>
-                                <td>{{product.data().size}}</td>
                                 <td>&#8377; {{product.data().price}}</td>
                             </tr>
                         </tbody>
@@ -255,8 +261,7 @@ table{
                         <thead>
                             <tr>
                             <th style="width:10%">Sr. No.</th>
-                            <th scope="col-6">Name</th>
-                            <th scope="col">Size</th>
+                            <th scope="col-8">Name</th>
                             <th scope="col">Price</th>
                             <th style="width:10%"><i class="fa fa-trash text-danger"></i></th>
                             </tr>
@@ -265,7 +270,6 @@ table{
                             <tr v-for="(product, index) in products" :key="index">
                                 <th>{{index + 1}}.</th>
                                 <td>{{product.data().name}}</td>
-                                <td>{{product.data().size}}</td>
                                 <td>&#8377; {{product.data().price}}</td>
                                 <td @click="deleteProductConfirm(product.id)" ><i class="fa fa-trash text-danger"></i></td>
                             </tr>
@@ -303,14 +307,16 @@ export default {
             isReauthneticated:true,
             isDelete:false,
             name:null,
-            size:null,
-            shape:null,
+            sizes:[],
+            shapes:[],
             price:null,
             highlights:[],
             description:null,
             imagelink:null,
             highlight:null,
             range:[1],
+            Sizerange:[1],
+            Shaperange:[1],
             feedback:null,
             success:null,
             filename:null,
@@ -341,14 +347,32 @@ export default {
                 input.setAttribute("type", "password");
             }
         },
-        addHighlight(index) {
-            if (this.highlights[index]) {
+        addHighlight(idx) {
+            if (this.highlights[idx]) {
                 this.highlights.push(this.highlight);
                 this.range.push(1)
                 this.highlight = null;
                 this.feedback = null;
             } else {
                 this.feedback = 'Please Enter a Highlight First'
+            }
+        },
+        addSize(idx) {
+            if (this.sizes[idx]) {
+                this.sizes.push(null);
+                this.Sizerange.push(1);
+                this.feedback = null;
+            } else {
+                this.feedback = 'Please Enter a Size First'
+            }
+        },
+        addShape(idx) {
+            if (this.shapes[idx]) {
+                this.shapes.push(null);
+                this.Shaperange.push(1)
+                this.feedback = null;
+            } else {
+                this.feedback = 'Please Enter a Shape First'
             }
         },
         editHighlight(index) {
@@ -359,6 +383,22 @@ export default {
                 this.feedback = 'Please Enter a Highlight First'
             }
         },
+        editSize(index) {
+            if (this.editProduct.size[index]) {
+                this.editProduct.size.push(null);
+                this.feedback = null;
+            } else {
+                this.feedback = 'Please Enter a Size First'
+            }
+        },
+        editShape(index) {
+            if (this.editProduct.shape[index]) {
+                this.editProduct.shape.push(null);
+                this.feedback = null;
+            } else {
+                this.feedback = 'Please Enter a Shape First'
+            }
+        },
         addProduct(){
             var vm = this
             if (this.name && this.price && this.description && this.highlights && this.filename) {
@@ -366,8 +406,8 @@ export default {
                 db.collection('products').add({
                     name:vm.name,
                     price:vm.price,
-                    size:vm.size,
-                    shape:vm.shape,
+                    size:vm.sizes,
+                    shape:vm.shapes,
                     description:vm.description,
                     highlight:vm.highlights,
                     imageLink:vm.imagelink,
@@ -388,11 +428,13 @@ export default {
                             }).then(() =>{
                                 vm.name = null
                                 vm.price = null
-                                vm.size = null
-                                vm.shape = null
+                                vm.sizes = []
+                                vm.shapes = []
                                 vm.description = null
                                 vm.highlights = []
                                 vm.range = [1]
+                                vm.Sizerange = [1]
+                                vm.Shaperange = [1]
                                 document.querySelector('#blah').setAttribute('src', 'http://placehold.it/180');
                                 vm.filename = null
                                 vm.success = "Product added!"

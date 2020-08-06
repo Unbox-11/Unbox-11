@@ -64,9 +64,16 @@
   margin: 15px;
 }
 .card-body{
-  margin:auto 10px;
+  margin:auto 0;
 }
-.card-horizontal a{
+a{
+  color:#141414;
+  text-decoration: none;
+}
+a:hover{
+  text-decoration: none;
+}
+.card-horizontal .removefromCart{
   position: absolute;
   bottom:0;
   left:0;
@@ -79,7 +86,7 @@
   height: 35px;
   color: rgba(0,0,0,0.8);
 }
-.card-horizontal a:hover{
+.card-horizontal .removefromCart:hover{
   background: rgba(0,0,0,0.5);
   color: rgba(255,255,255,0.8);
 }
@@ -90,7 +97,7 @@
   box-shadow: 0px 1px 3px 1px rgba(34,41,72,0.1);
   border-radius: 15px;
   overflow: hidden;
-  padding:20px;
+  padding:20px 10px;
   margin:10px auto;
 }
 .emptycart img{
@@ -231,7 +238,7 @@ input[type=number] {
     }
 }
 @media screen and (max-width: 320px){
-    .card-horizontal a{
+    .card-horizontal .removefromCart{
       font-size:0.8em;
     }
 }
@@ -255,27 +262,36 @@ input[type=number] {
                           <div class="card-horizontal">
                             <div class="row">
                               <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12" align="center">
-                                <img class="card-img" :src="prod.data().imageLink" :alt="prod.name">
+                                <router-link :to="{name:'Product',params:{id:prod.id}}">
+                                  <img class="card-img" :src="prod.data().imageLink" :alt="prod.name">
+                                </router-link>
                               </div>
                               <div class="col-xl-8 col-lg-8 col-md-8 col-sm-12 col-xs-12 information"  align="center">
                                 <div class="card-body" align="center">
                                   <div align="left">
-                                    <h4 class="card-title">{{prod.data().name}}</h4>
+                                    <router-link :to="{name:'Product',params:{id:prod.id}}">
+                                      <h4 style="display:table" class="card-title">{{prod.data().name}}</h4>
+                                    </router-link>
                                     <p class="card-text">
                                       <strong style="font-size:1.1em;">&#8377; {{prod.data().price}}</strong>
                                       <span class="text-muted ml-3" style="text-decoration-line: line-through;">&#8377; {{parseInt(prod.data().price) + parseInt(prod.data().price/2)}}</span>
                                       <small class="text-muted ml-5"> Delivery in 4 hours</small>
                                     </p>
-                                    <div class="input-group">
+                                    <h6 class="card-text">
+                                      Size:  <strong style="font-size:1.1em;" class="mr-3">{{carts[index].size}}</strong>
+                                      Shape:  <strong style="font-size:1.1em;" class="mr-3">{{carts[index].shape}}</strong>
+                                      Quantity: <strong style="font-size:1.1em;" class="mr-3">{{carts[index].quantity}}</strong>
+                                    </h6>
+                                    <!-- <div class="input-group">
                                       <input type="button" @click="decrementValue(prod.data().price, $event, index)" value="-" class="button-minus" data-field="quantity">
                                       <input type="number" step="1" min="1" :value="quantity[index]" name="quantity" class="quantity-field">
                                       <input type="button" @click="incrementValue(prod.data().price, $event, index)" value="+" class="button-plus" data-field="quantity">
-                                    </div>
+                                    </div> -->
                                   </div>
                                 </div>
                               </div>
                             </div>
-                            <a @click.prevent="removeId = prod.id; isDelete = true">Remove From The Cart</a>
+                            <a class="removefromCart" @click.prevent="removeId = prod.id + carts[index].size + carts[index].shape; isDelete = true">Remove From The Cart</a>
                           </div>
                       </div>
                   </div>
@@ -288,14 +304,14 @@ input[type=number] {
       </div>
       <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 col-xs-12">
         <div class="amount" align="center">
-          <h3><strong>My Orders</strong></h3>
+          <h3><strong>Total Cost</strong></h3>
           <hr>
           <div class="row">
             <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-xs-8">
               <p class="float-left">Price ({{carts.length}})</p>
             </div>
             <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-xs-4">
-              <p class="float-right" style="font-weight:900">₹{{cartsPrice.reduce(function(a,b){return a+b})}}</p>
+              <p class="float-right" style="font-weight:900">₹{{total}}</p>
             </div>
             <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-xs-8">
               <p class="float-left">Delivery Fee</p>
@@ -310,7 +326,7 @@ input[type=number] {
               <p class="float-left" style="font-weight:900">Total Amount: </p>
             </div>
             <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-xs-4">
-              <p class="float-right" style="font-weight:900">₹{{cartsPrice.reduce(function(a,b){return a+b})}}</p>
+              <p class="float-right" style="font-weight:900">₹{{total}}</p>
             </div>
           </div>
           
@@ -370,10 +386,8 @@ export default {
         return{
           carts:[],
           cartsProd:[],
-          cartsPrice:[0],
           total:0,
           index:null,
-          quantity:[],
           removeId:null,
           isDelete:false,
           error:false,
@@ -384,63 +398,57 @@ export default {
     methods:{
       remove(){
         var vm = this
-        this.carts = this.carts.filter(cart =>{
-          return cart != vm.removeId
-        })
-        this.cartsProd = this.cartsProd.filter(cart =>{
-          return cart.id != vm.removeId
-        })
-        db.collection('users').doc(this.index).update({
-          cart:vm.carts
+        db.collection('Cart').doc(this.index).update({
+          [vm.removeId]:firebase.firestore.FieldValue.delete()
         }).then(()=>{
             vm.removeId = null
-            this.isDelete = false
+            vm.isDelete = false
             vm.success = true
             vm.Msg = "Successfully Removed From the Cart!"
             setTimeout(() => {
               vm.success = null
             }, 2000);
         }).catch(error =>{
+            vm.isDelete - false
             vm.error = true
             vm.Msg = "Something Went Wrong!" + error.message
             setTimeout(() => {
               vm.error = null
             }, 2000);
         })
-        
       },
-      decrementValue(price, e, id) {
-          var fieldName = $(e.target).data('field');
-          var parent = $(e.target).closest('div');
-          var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
-          var tempcart = 0
-          if (!isNaN(currentVal) && currentVal > 1) {
-            parent.find('input[name=' + fieldName + ']').val(currentVal - 1);
-            this.$set(this.quantity, id, currentVal - 1)
-            tempcart = price * (currentVal - 1)
-          } else {
-            parent.find('input[name=' + fieldName + ']').val(1);
-            this.$set(this.quantity, id, 1)
-            tempcart = price * 1
-          }
-          this.$set(this.cartsPrice, id, tempcart)
-      },
-      incrementValue(price, e, id) {
-          var fieldName = $(e.target).data('field');
-          var parent = $(e.target).closest('div');
-          var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
-          var tempcart = 0
-          if (!isNaN(currentVal)) {
-            parent.find('input[name=' + fieldName + ']').val(currentVal + 1);
-            this.$set(this.quantity, id, currentVal+1)
-            tempcart = price * (currentVal + 1)
-          } else {
-            parent.find('input[name=' + fieldName + ']').val(1);
-            this.$set(this.quantity, id, 1)
-            tempcart = price * 1
-          }
-          this.$set(this.cartsPrice, id, tempcart)
-      },
+      // decrementValue(price, e, id) {
+      //     var fieldName = $(e.target).data('field');
+      //     var parent = $(e.target).closest('div');
+      //     var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
+      //     var tempcart = 0
+      //     if (!isNaN(currentVal) && currentVal > 1) {
+      //       parent.find('input[name=' + fieldName + ']').val(currentVal - 1);
+      //       this.$set(this.quantity, id, currentVal - 1)
+      //       tempcart = price * (currentVal - 1)
+      //     } else {
+      //       parent.find('input[name=' + fieldName + ']').val(1);
+      //       this.$set(this.quantity, id, 1)
+      //       tempcart = price * 1
+      //     }
+      //     this.$set(this.cartsPrice, id, tempcart)
+      // },
+      // incrementValue(price, e, id) {
+      //     var fieldName = $(e.target).data('field');
+      //     var parent = $(e.target).closest('div');
+      //     var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
+      //     var tempcart = 0
+      //     if (!isNaN(currentVal)) {
+      //       parent.find('input[name=' + fieldName + ']').val(currentVal + 1);
+      //       this.$set(this.quantity, id, currentVal+1)
+      //       tempcart = price * (currentVal + 1)
+      //     } else {
+      //       parent.find('input[name=' + fieldName + ']').val(1);
+      //       this.$set(this.quantity, id, 1)
+      //       tempcart = price * 1
+      //     }
+      //     this.$set(this.cartsPrice, id, tempcart)
+      // },
     },
     mounted(){
       document.documentElement.scrollTop = 0
@@ -448,23 +456,17 @@ export default {
       firebase.auth().onAuthStateChanged(user =>{
           if(user){
               this.index = user.uid
-              db.collection('users').doc(this.index).onSnapshot(snapshot =>{
-                  var carts = snapshot.data().cart
-                  if (carts.length > 0) {
-                    vm.carts = carts;
-                  }
+              db.collection('Cart').doc(this.index).onSnapshot(snapshot =>{
+                  var carts = snapshot.data()
+                  vm.carts = []
+                  var set = $.map( carts, function( value, index ) {
+                      vm.carts.push(value)
+                  });
                   vm.cartsProd = []
-                  vm.total = null
                   vm.carts.forEach((pro, idx) => {
-                    db.collection('products').doc(pro).get().then(data => {
+                    db.collection('products').doc(pro.id).get().then(data => {
                       vm.cartsProd.push(data)
-                      if (idx == 0) {
-                        vm.cartsPrice=[parseInt(data.data().price)]
-                      } else {
-                        vm.cartsPrice.push(parseInt(data.data().price))
-                      }
-                      
-                      vm.quantity.push(1)
+                      vm.total += data.data().price * pro.quantity
                     })
                   });
               })

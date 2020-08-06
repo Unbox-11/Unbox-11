@@ -89,11 +89,11 @@
                                         <strong style="font-size:1.6em;">&#8377; {{product.data().price}}</strong>
                                         <span class="text-muted ml-2" style="text-decoration-line: line-through;">&#8377; {{parseInt(product.data().price) + parseInt(product.data().price/2)}}</span>
                                         <span class="ml-5" style="font-size:1.1em;"> Delivery in 4 hours</span></p>
-                                    <div class="input-group">
+                                    <!-- <div class="input-group">
                                       <input type="button" @click="decrementValue(product.data().price, $event, 0)" value="-" class="button-minus" data-field="quantity">
                                       <input type="number" step="1" min="1" :value="quantity" name="quantity" class="quantity-field">
                                       <input type="button" @click="incrementValue(product.data().price, $event, 0)" value="+" class="button-plus" data-field="quantity">
-                                    </div>
+                                    </div> -->
                                   </div>
                                 </div>
                               </div>

@@ -42,7 +42,7 @@
                     <router-link class="dropdown-item" @click.native="navbarClass" :to="{name:'Coupons'}">My Coupons</router-link>
                   </div>
                 </li>
-                <li class="nav-item"><router-link :to="{name:'Cart'}" class="nav-link"> <i style="font-size:25px;" class="fa fa-shopping-cart"></i> Cart</router-link></li>
+                <li class="nav-item"><a :href="$router.resolve({name: 'Cart'}).href" class="nav-link"> <i style="font-size:25px;" class="fa fa-shopping-cart"></i> Cart</a></li>
                 <li class="nav-item" v-if="!isAuthenticated"><router-link :to="{name:'Login'}" class="nav-link">Log In</router-link></li>
                 <li class="nav-item" v-if="isAuthenticated"><a @click.prevent="logout" href="#" class="nav-link">Log Out</a></li>
               </ul>
