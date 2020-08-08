@@ -8,11 +8,13 @@
                     <div class="buyproduct">
                         <div class="row">
                             <div class="col-xs-6 add col-sm-6 col-xs-6 col-md-6">
-                                <button @click="addtocart(1, $event)" class="btn float-left btn-default btn-lg addTocart">Add to Cart</button>
+                                <router-link :to="{name:'Product', params:{id:order.product[prdIndex].id}}">
+                                    <button class="btn float-left btn-default btn-lg addTocart">Review Product</button>
+                                </router-link>
                             </div>
                             <div class="col-xs-6 add col-sm-6 col-xs-6 col-md-6">
-                                <router-link @click.native="addtocart(0, $event)" :to="{name:'Order', params:{id:$route.params.id, quantity:quantity, size:sizeSelected, shape:shapeSelected}}">
-                                    <button class="btn float-right btn-default btn-lg">Buy Now</button>
+                                <router-link :to="{name:'Product', params:{id:order.product[prdIndex].id}}">
+                                    <button class="btn float-right btn-default btn-lg">Buy Again</button>
                                 </router-link>
                             </div>
                         </div>
@@ -21,46 +23,18 @@
             </div>
              <div class="col-xl-8 col-lg-8 col-md-7 col-sm-6 col-xs-12">
                 <div class="container" align="left" style="z-index:1;">
-                    <h3><strong>{{product.name}}</strong></h3>
+                    <router-link :to="{name:'Product',params:{id:order.product[prdIndex].id}}">
+                        <h3 style="display:table">{{product.name}}</h3>
+                    </router-link>
                     <hr style="margin-top:-7px;">
-                    <p class="text-muted">4.23,567 Ratings & 308 Reviews</p>
                     <h3><strong>&#8377; {{product.price}}</strong></h3>
                     <h5 class="text-muted" style="text-decoration:line-through">&#8377; {{parseInt(product.price) + parseInt(product.price/2)}}</h5>
-                    
-                    <div class="form-group">
-                        <label for="">Select Quantity:  </label>
-                        <div class="input-group">
-                            <input type="button" @click="decrementValue($event)" value="-" class="button-minus" data-field="quantity">
-                            <input type="number" step="1" min="1" :value="quantity" name="quantity" class="quantity-field">
-                            <input type="button" @click="incrementValue($event)" value="+" class="button-plus" data-field="quantity">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="">Select Size:  </label>
-                        <select class="form-control" v-model="sizeSelected" name="size" required>
-                            <option v-for="(size, index) in product.size" :key="index" :value="size">{{size}}</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="">Select Shape:  </label>
-                        <select class="form-control" v-model="shapeSelected" name="shape" required>
-                            <option v-for="(shape, index) in product.shape" :key="index" :value="shape">{{shape}}</option>
-                        </select>
-                    </div>
-                    <div class="highlight">
-                        <h4><strong>Highlights</strong></h4>
-                        <hr style="margin-top:-7px;">
-                        <ul>
-                            <li v-for="(hgl, index) in product.highlight" :key="index"><h6>{{hgl}}</h6></li>
-                        </ul>
-                    </div>
-                    <div class="description">
-                        <h4><strong> Description</strong></h4>
-                        <hr style="margin-top:-7px;">
-                        <h6>
-                            {{product.description}}
-                        </h6>
-                    </div>
+                    <h3>Quantity: {{order.product[prdIndex].quantity}}</h3>
+                    <h3>Size: {{order.product[prdIndex].size}}</h3>
+                    <h3>Shape: {{order.product[prdIndex].shape}} </h3>
+                    <h4>Payment Mode: {{order.payment}}</h4>
+                    <h4>Ordered On: {{order.status.ordered_on.date}}</h4>
+                    <h4 v-if="order.status.ordered_on.isDelivered">Delivered On: {{order.status.delivered_on}}</h4>
                 </div>
             </div>
         </div>
@@ -86,84 +60,42 @@ export default {
     },
     data(){
         return{
-            index:'',
+            index:null,
+            prdIndex:[],
             product:[],
-            cart:[],
-            quantity:1,
-            sizeSelected:null,
-            shapeSelected:null,
+            order:[],
             isDisplay:false
         }
     },
     methods:{
-        addtocart(n, e){
-            var target = e
-            var vm = this
-            firebase.auth().onAuthStateChanged(user =>{
-                if(user)
-                {
-                    db.collection('Cart').doc(user.uid).get().then(snapshot =>{
-                        vm.cart={id:vm.index, size:vm.sizeSelected, shape:vm.shapeSelected, quantity:vm.quantity}
-                        var docId = this.index+ vm.sizeSelected+ vm.shapeSelected
-                        db.collection('Cart').doc(user.uid).update({
-                            [docId]:vm.cart,
-                        }).then(()=>{
-                            target.target.innerText = "Added To Cart"
-                            if (n==1) {
-                                vm.$router.push({name:"Cart"})
-                            }
-                        })
-                    })
-                    
-                }
-            })
-        },
-        decrementValue(e) {
-            var fieldName = $(e.target).data('field');
-            var parent = $(e.target).closest('div');
-            var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
 
-            if (!isNaN(currentVal) && currentVal > 1) {
-              this.quantity =  currentVal - 1
-            } else {
-              this.quantity = 1
-            }
-        },
-        incrementValue(e) {
-            var fieldName = $(e.target).data('field');
-            var parent = $(e.target).closest('div');
-            var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
-
-            if (!isNaN(currentVal)) {
-              this.quantity =  currentVal + 1
-            } else {
-              this.quantity =  1
-            }
-        },
     },
-    mounted(){
+    created(){
         $("html, body").animate( 
             { scrollTop: "0" }, 100); 
         this.index = this.$route.params.id
+        this.prdIndex = this.$route.params.prdId
         var vm=this
-        db.collection('products').doc(this.index).onSnapshot(snapshot =>{
-            this.product = snapshot.data()
-            this.sizeSelected = snapshot.data().size[0]
-            this.shapeSelected = snapshot.data().shape[0]
-            this.$parent.loader = false
-            this.isDisplay = true
-        })
         firebase.auth().onAuthStateChanged(user =>{
                 if(user)
                 {
-                    db.collection('Cart').doc(user.uid).onSnapshot(snapshot =>{
-                        if (!(snapshot.exists)) {
-                            return db.collection('Cart').doc(user.uid).set({})
-                        }
+                    db.collection('user_orders').doc(user.uid).onSnapshot(snapshot =>{
+                        var orders = snapshot.data()
+                        vm.order = []
+                        vm.product = []
+                        var set = $.map( orders, function( value, index ) {
+                            if (index.toString() === vm.index) {
+                                vm.order = value
+                                db.collection('products').doc(value.product[vm.prdIndex].id).get().then(data => {
+                                    vm.product = data.data()
+                                })   
+                            }
+                        });
+                        vm.isDisplay = true
+                        this.$parent.loader = false
                     })
                 }
         })
-        
         window.resize = function () {
             if (window.innerWidth > 768)
                 $('.images').css('position','sticky');
@@ -272,6 +204,10 @@ export default {
     z-index:0;
     max-height:450px;
 }
+a{
+    color:rgba($color: #000000, $alpha: 1.0);
+    text-decoration: none;
+}
 .product .container{
     padding:30px 30px;
     border:1px solid white;
@@ -321,83 +257,7 @@ export default {
   border-top:1px solid #ccc;
   background: rgba(248,248,255);
 }
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
 
-/* Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
-}
-input{
-  border: 1px solid #eeeeee;
-  box-sizing: border-box;
-  margin: 0;
-  outline: none;
-  padding: 10px;
-}
-
-input[type="button"] {
-  -webkit-appearance: button;
-  cursor: pointer;
-}
-
-.input-group {
-  clear: both;
-  margin: 15px 0;
-  position: relative;
-}
-label{
-    font-size:1em;
-    font-weight: 900;
-    margin: auto 0;
-    margin-right: 15px;
-}
-.input-group input[type='button'] {
-  background-color: #ccc;
-  min-width: 38px;
-  width: auto;
-  transition: all 300ms ease;
-}
-
-.input-group .button-minus,
-.input-group .button-plus {
-  font-size: 1.1em;
-  font-weight: bold;
-  height: 38px;
-  padding: 0;
-  width: 38px;
-  position: relative;
-}
-
-.input-group .quantity-field {
-  position: relative;
-  height: 38px;
-  left: -6px;
-  text-align: center;
-  font-weight: bold;
-  width: 62px;
-  display: inline-block;
-  margin: 0 0 5px;
-  resize: vertical;
-  font-size: 1.1em;
-}
-
-.button-plus {
-  left: -13px; 
-  border-radius: 0px 10px 10px 0;
-}
-.button-minus {
-  border-radius: 10px 0px 0px 10px;
-}
-select{
-    max-width: 250px;
-}
-select:focus{
-    box-shadow: none;
-}
 @media screen and (max-width:768px){
     .images{
         position: relative;

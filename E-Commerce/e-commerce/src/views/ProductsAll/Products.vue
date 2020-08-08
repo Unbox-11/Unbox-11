@@ -121,7 +121,7 @@ export default {
                     vm.products.push(change.doc);
                 }
             });
-
+            this.$parent.loader = false
         })
     }
 }

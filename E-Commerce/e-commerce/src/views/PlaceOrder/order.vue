@@ -1,5 +1,9 @@
 <template>
   <div class="container" id="container">
+    <div class="pos-fixed" style="position:fixed;left:0;right:0;z-index:175523;">
+      <p v-if="error" id="error" class="alert alert-danger text-center">{{Msg}}</p>
+      <p v-if="success" id="success" class="alert alert-success text-center">{{Msg}}</p>
+    </div>
     <div class="row">
       <div class="col-xl-8 col-lg-8 col-md-12 col-sm-12 col-xs-12">
         <div class="orders" align="center">
@@ -25,13 +29,13 @@
                             <textarea  class="form-control" name="address" placeholder="Address" cols="30" rows="4"></textarea>
                         </div>
                         <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
-                            <select class="form-control" name="state">
-                                <option value="Maharashtra">Maharashtra</option>
+                            <select class="form-control" @change.prevent="stateSelected" name="state" required>
+                                <option v-for="(state, index) in statestoShow" :key="index" :value="index">{{state}}</option>
                             </select>
                         </div>
                         <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
-                            <select class="form-control" name="city">
-                                <option value="Pune">Pune</option>
+                            <select class="form-control" name="city" required>
+                                <option v-for="(city, index) in currentcities" :key="index" :value="city">{{city}}</option>
                             </select>
                         </div>
                         <div class="col-xl-6 col-lg-6 col-md-12 col-xs-12 col-sm-12">
@@ -79,12 +83,16 @@
                           <div class="card-horizontal">
                             <div class="row">
                               <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12" align="center">
-                                <img class="card-img" :src="product.data().imageLink" alt="Card image">
+                                <router-link :to="{name:'Product',params:{id:product.id}}">
+                                  <img class="card-img" :src="product.data().imageLink" alt="Card image">
+                                </router-link>
                               </div>
                               <div class="col-xl-8 col-lg-8 col-md-8 col-sm-12 col-xs-12"  align="center">
                                 <div class="card-body" align="center">
                                   <div align="left">
-                                    <h4 class="card-title">{{product.data().name}}</h4>
+                                    <router-link :to="{name:'Product',params:{id:product.id}}">
+                                      <h4 class="card-title">{{product.data().name}}</h4>
+                                    </router-link>
                                     <p class="card-text">
                                         <strong style="font-size:1.6em;">&#8377; {{product.data().price}}</strong>
                                         <span class="text-muted ml-2" style="text-decoration-line: line-through;">&#8377; {{parseInt(product.data().price) + parseInt(product.data().price/2)}}</span>
@@ -94,6 +102,11 @@
                                       <input type="number" step="1" min="1" :value="quantity" name="quantity" class="quantity-field">
                                       <input type="button" @click="incrementValue(product.data().price, $event, 0)" value="+" class="button-plus" data-field="quantity">
                                     </div> -->
+                                    <h6 class="card-text">
+                                      Size:  <strong style="font-size:1.1em;" class="mr-3">{{size}}</strong>
+                                      Shape:  <strong style="font-size:1.1em;" class="mr-3">{{shape}}</strong>
+                                      Quantity: <strong style="font-size:1.1em;" class="mr-3">{{quantity}}</strong>
+                                    </h6>
                                   </div>
                                 </div>
                               </div>
@@ -144,7 +157,7 @@
               <p class="float-left">Price ({{quantity}})</p>
             </div>
             <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-xs-4">
-              <p class="float-right" style="font-weight:900">₹{{cartsPrice.reduce(function(a,b){return a+b})}}</p>
+              <p class="float-right" style="font-weight:900">₹{{total}}</p>
             </div>
             <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-xs-8">
               <p class="float-left">Delivery Fee</p>
@@ -159,7 +172,7 @@
               <p class="float-left" style="font-weight:900">Total Amount: </p>
             </div>
             <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-xs-4">
-              <p class="float-right" style="font-weight:900">₹{{cartsPrice.reduce(function(a,b){return a+b})}}</p>
+              <p class="float-right" style="font-weight:900">₹{{total}}</p>
             </div>
           </div>
           
@@ -181,6 +194,7 @@
 <script>
 import firebase from 'firebase'
 import db from '../Firebase _Overview/init'
+import cities from '../Profile/cities'
 export default {
     name: 'Checkout',
     components:{
@@ -191,25 +205,93 @@ export default {
           index:'',
           product:null,
           total:0,
-          cartsPrice:[0],
           addresses:[],
           selectedAddress:'',
-          quantity:1,
+          quantity:null,
+          size:null,
+          shape:null,
           payment:'',
           isOrderSummary : false,
           isPayment : false,
           isDelivery : true,
+          statestoShow:[],
+          currentcities:[],
+          stateSelectedAlready:null,
+          error:false,
+          success:false,
+          Msg:'',
         }
     },
     methods:{
         submit(){
-            document.querySelector('.addAdressForm').style.display = "none";
+          var addressForm = document.querySelector('.addAdressForm')
+          var name = addressForm['name'].value
+          var mobileNumber = addressForm['mobileNumber'].value
+          var pincode = addressForm['pincode'].value
+          function validate(a){
+              return /^(\d{4}|\d{6})$/.test(a);
+          }
+          if (!(validate(pincode))) {
+            vm.error = true
+            vm.Msg = 'Pincode Not Valid!'
+            setTimeout(() => {
+                vm.error = false
+            }, 4000);
+            return false
+          }
+          var locality = addressForm['locality'].value
+          var address = addressForm['address'].value
+          var state = addressForm['state'].value
+          state = this.statestoShow[state]
+          var city = addressForm['city'].value
+          var mobileNumber1 = addressForm['mobileNumber1'].value
+          var finalAddress ={'name': name, 'mobile_number':mobileNumber, 'alternate_Number':mobileNumber1, 'address':address, 'locality':locality, 'city':city, 'state':state, 'pincode':pincode}
+          this.addresses.push(finalAddress)
+          var vm = this
+          firebase.auth().onAuthStateChanged(user =>{
+            if(user){
+                   db.collection('users').doc(user.uid).update({
+                      addresses:vm.addresses,
+                  }).then(() =>{
+                      vm.success = true
+                      document.querySelector('.addAdressForm').style.display = "none";
+                      vm.Msg = 'SuccessFully Done'
+                      setTimeout(() => {
+                          vm.success = false
+                      }, 4000);
+                  }).catch(function (error) {
+                      vm.error = true
+                      vm.Msg = error.message
+                      setTimeout(() => {
+                          vm.error = false
+                      }, 4000);
+                  })
+            }
+          })
+         
         },
         reset(){
             document.querySelector('.addAdressForm').style.display = "none";
         },
         newAddress(){
             document.querySelector('.addAdressForm').style.display = "block";
+        },
+        stateSelected(){
+            var idx = parseInt(document.querySelector('select[name="state"]').value) + 1
+            var city_arr = cities.s_a[idx].split("|");
+            this.currentcities = city_arr
+        },
+        cityselect(inx){
+            var idx = null
+            this.statestoShow.forEach((element, index) => {
+                if (element == this.addresses[inx].state)
+                {
+                    this.stateSelectedAlready = index
+                    idx = index + 1
+                }
+            });
+            var city_arr = cities.s_a[idx].split("|");
+            this.currentcities = city_arr
         },
         selectaddress(){
             document.querySelectorAll('.index input[name= selected]').forEach(element => {
@@ -246,11 +328,8 @@ export default {
         orderSummary(){
           $("html, body").animate( 
                 { scrollTop: "0" }, 500); 
-            if (document.querySelector('input[name= quantity]').value != 0) {
-              this.quantity = document.querySelector('input[name= quantity]').value
-              this.isOrderSummary =  false;
-              this.isPayment = true;
-            }        
+          this.isOrderSummary =  false;
+          this.isPayment = true;
         },
         checkout(){
             document.querySelectorAll('input[name= paymentOptions]').forEach(element => {
@@ -258,49 +337,78 @@ export default {
                 this.payment = element.value;
               }
             })
-            if (this.payment != null) {
-              console.log(this.payment + this.quantity + this.selectedAddress.name)
+            if (this.payment) {
+              var information ={
+                status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
+                selectedaddresses:this.selectedAddress,
+                payment: this.payment
+              }
+              var vm =this
+              firebase.auth().onAuthStateChanged(user =>{
+                  if(user){
+                        db.collection('user_orders').doc(user.uid).get().then(snapshot=>{
+                          if (snapshot.exists) {
+                            var data = snapshot.data()
+                            var fieldname
+                            Object.keys(data).forEach(function(key) {
+                              fieldname = parseInt(key)
+                            })
+                            fieldname = (fieldname + 1).toString()
+                            var prodid = vm.index + vm.size + vm.shape;
+                            db.collection('user_orders').doc(user.uid).update({
+                              [fieldname]:information
+                            }).then(()=>{
+                              db.collection('Cart').doc(user.uid).update({
+                                [prodid]:firebase.firestore.FieldValue.delete()
+                              }).then(()=>{
+                                db.collection('admin_orders').add({
+                                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                                    product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
+                                    selectedaddresses:this.selectedAddress,
+                                    payment: this.payment,
+                                    useruid: user.uid,
+                                }).then(() =>{
+                                  this.$router.push({name:'Orders'})
+                                })
+                              })
+                            })
+                          } else {
+                            var prodid = vm.index + vm.size + vm.shape;
+                            db.collection('user_orders').doc(user.uid).set({
+                              '1':information
+                            }).then(()=>{
+                              db.collection('Cart').doc(user.uid).update({
+                                [prodid]:firebase.firestore.FieldValue.delete()
+                              }).then(()=>{
+                                  db.collection('admin_orders').add({
+                                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                                    product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
+                                    selectedaddresses:this.selectedAddress,
+                                    payment: this.payment,
+                                    useruid: user.uid,
+                                  }).then(() =>{
+                                    this.$router.push({name:'Orders'})
+                                  })
+                              })
+                            })
+                          }
+                        })
+                  }
+              })
             }
-        },
-        decrementValue(price, e, id) {
-            var fieldName = $(e.target).data('field');
-            var parent = $(e.target).closest('div');
-            var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
-             var tempcart = 0
-            if (!isNaN(currentVal) && currentVal > 1) {
-              parent.find('input[name=' + fieldName + ']').val(currentVal - 1);
-              this.quantity =  currentVal - 1
-              tempcart = price * (currentVal - 1)
-            } else {
-              parent.find('input[name=' + fieldName + ']').val(1);
-              this.quantity = 1
-              tempcart = price * 1
-            }
-            this.$set(this.cartsPrice, id, tempcart)
-        },
-        incrementValue(price, e, id) {
-            var fieldName = $(e.target).data('field');
-            var parent = $(e.target).closest('div');
-            var currentVal = parseInt(parent.find('input[name=' + fieldName + ']').val(), 10);
-            var tempcart = 0
-            if (!isNaN(currentVal)) {
-              parent.find('input[name=' + fieldName + ']').val(currentVal + 1);
-              this.quantity =  currentVal + 1
-              tempcart = price * (currentVal + 1)
-            } else {
-              parent.find('input[name=' + fieldName + ']').val(1);
-              this.quantity =  1
-              tempcart = price * 1
-            }
-            this.$set(this.cartsPrice, id, tempcart)
         },
     },
     mounted(){
         document.documentElement.scrollTop = 0
         this.index = this.$route.params.id
+        this.quantity = this.$route.params.quantity
+        this.size = this.$route.params.size
+        this.shape = this.$route.params.shape
         var vm =this
         firebase.auth().onAuthStateChanged(user =>{
             if(user){
+              this.$parent.loader = true
                   db.collection('users').doc(user.uid).onSnapshot(snapshot=>{
                     vm.data = snapshot.data()
                     vm.addresses = snapshot.data().addresses
@@ -308,10 +416,16 @@ export default {
                   db.collection('products').doc(this.index).get().then(data => {
                     var data = data;
                     vm.product = data;
-                    vm.cartsPrice=[parseInt(data.data().price)]
-                })
+                    vm.total = vm.quantity * data.data().price
+                    this.$parent.loader = false
+                  })
             }
         })
+
+        this.statestoShow = cities.state_arr
+        var city_arr = cities.s_a[1].split("|");
+        this.currentcities = city_arr
+
         var upward = document.querySelector(".upward");
         window.onscroll = function (){
         if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
@@ -343,7 +457,7 @@ export default {
       for (let index = 0; index < this.addresses.length; index++) {
         if (this.addresses[index] == this.selectedAddress) {
           document.querySelectorAll('.index input').forEach(element => {
-            if(element.value == this.selectedAddress){
+            if(this.addresses[element.value] == this.selectedAddress){
               element.parentElement.querySelector('label').classList.add('active')
             }else{
                element.parentElement.querySelector('label').classList.remove('active')
@@ -394,6 +508,39 @@ export default {
   padding:20px;
   margin:10px auto;
 }
+.alert{
+    margin: 0 auto;
+    max-width: 350px;
+    animation-duration: 1s;
+    animation-fill-mode: both;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-fill-mode: both;
+    opacity: 0;
+    animation-name: fadeInDown;
+    -webkit-animation-name: fadeInDown;
+}
+@keyframes fadeInDown {
+    from {
+        transform: translate3d(0,-80px,0)
+    }
+
+    to {
+        transform: translate3d(0,0,0);
+        opacity: 1
+    }
+}
+
+@-webkit-keyframes fadeInDown {
+    from {
+        transform: translate3d(0,-80px,0)
+    }
+
+    to {
+        transform: translate3d(0,0,0);
+        opacity: 1
+    }
+}
+
 .addAdressForm{
     max-width: 1000px;
     padding: 20px;
@@ -434,7 +581,7 @@ export default {
     }
 }
 .addAdressForm .row{
-    max-width:980px;
+    margin: 0 auto;
 }
 .addAdressForm textarea{
     min-height: 5rem;
@@ -546,6 +693,16 @@ input[type="radio"]{
 .orderSummary .card-body{
   margin:auto 15px;
   padding: 50% auto;
+}
+.orderSummary .card-title{
+  color:#141414;
+  text-decoration: none;
+}
+.orderSummary a:focus{
+  text-decoration: none;
+}
+.orderSummary a:hover{
+  text-decoration: none;
 }
 .orderSummary input{
   border: 1px solid #eeeeee;

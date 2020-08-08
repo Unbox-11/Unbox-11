@@ -1,5 +1,5 @@
 <template>
-<div style="margin-top: 130px;">
+<div v-if="isDisplay" style="margin-top: 130px;">
   
     <div id="containerThree">
         <carousel-3d :perspective="0" :space="400" :controls-visible="true" :controls-prev-html="'&#10092;'" :controls-next-html="'&#10093;'" 
@@ -114,7 +114,7 @@ export default {
       "https://rukminim1.flixcart.com/flap/844/140/image/5bcb52efc21c1d4e.jpg?q=50"],
 
       products:[],
-
+      isDisplay:false,
     }
   },
   methods: {
@@ -134,13 +134,13 @@ export default {
         this.$router.push({name:'Product',params:{id:index}})
     }
   },
-  mounted(){
+  created(){
     document.documentElement.scrollTop = 0
     firebase.auth().onAuthStateChanged(user =>{
         if(user)
         {
             var vm=this
-            db.collection('products').orderBy('name').onSnapshot(snapshot =>{
+            db.collection('products').orderBy('name').limit(8).onSnapshot(snapshot =>{
 
                 let changes = snapshot.docChanges();
                 changes.forEach(change => {
@@ -159,35 +159,41 @@ export default {
                         vm.products.push(change.doc);
                     }
                 });
-
+                this.$parent.loader = false
+                this.isDisplay = true
             })
         }
     })
-    var element = document.querySelector(".unstyled");
-    var anglesbtnBack = document.querySelector(".anglesbtnBack");
-    var anglesbtnForward = document.querySelector(".anglesbtnForward");
-    var maxScrollLeft = element.scrollWidth - element.clientWidth;
-    scrollFunction();
-    if (!(element.scrollWidth > element.clientWidth))
-    {
-      anglesbtnForward.style.display = "none";
-    }
-    element.onscroll = function() {scrollFunction()};
-    function scrollFunction() {
-        if (element.scrollLeft < 150) {
-          anglesbtnBack.style.display = "none";
-          anglesbtnForward.style.display = "block";
-        } else{
-          anglesbtnBack.style.display = "block";
-          if(element.scrollLeft > maxScrollLeft-1)
-          {
-           anglesbtnForward.style.display = "none";
-          }else{
+    setTimeout(() => {
+      var element = document.querySelector(".unstyled");
+
+      var anglesbtnBack = document.querySelector(".anglesbtnBack");
+      var anglesbtnForward = document.querySelector(".anglesbtnForward");
+      var maxScrollLeft = element.scrollWidth - element.clientWidth;
+      scrollFunction();
+      if (!(element.scrollWidth > element.clientWidth))
+      {
+        anglesbtnForward.style.display = "none";
+      }
+      element.onscroll = function() {scrollFunction()};
+      function scrollFunction() {
+          if (element.scrollLeft < 150) {
+            anglesbtnBack.style.display = "none";
             anglesbtnForward.style.display = "block";
+          } else{
+              anglesbtnBack.style.display = "block";
+            if(element.scrollLeft > maxScrollLeft-1)
+            {
+              anglesbtnForward.style.display = "none";
+            }else{
+              anglesbtnForward.style.display = "block";
+            }
+            
           }
-          
-        }
-    }
+      }
+    
+    }, 5000);
+      
   },
 }
 </script>

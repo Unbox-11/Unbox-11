@@ -411,7 +411,6 @@ export default {
                     description:vm.description,
                     highlight:vm.highlights,
                     imageLink:vm.imagelink,
-                    reviews:[],
                 }).then(docID=>{
                     let ontask = firebase.storage().ref('products/' + docID.id+ '/image.jpg').put(vm.filename)
                     let children = firebase.storage().ref('products/')
@@ -485,7 +484,6 @@ export default {
                     description:vm.editProduct.description,
                     highlight:vm.editProduct.highlight,
                     imageLink:vm.editProduct.imageLink,
-                    reviews:vm.editProduct.reviews,
                 }).then(()=>{
                     if(vm.filename != vm.editProduct.imageLink)
                     {

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="isDisplay">
         <profile1>
             <template slot="mainPart">
                 <div class="pos-fixed" style="position:fixed;left:0;right:0;z-index:98765432102;">
@@ -22,23 +22,6 @@
                         <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12">
                             <label for="firstName">Name</label>
                             <input type="text" id="firstName" name="name" class="form-control" :value="data.name" disabled>
-                        </div>
-                    </div>
-                    <div class="row firstRow">
-                        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                            <label for="firstName">Age</label>
-                            <input type="number" style="max-width:100px;" name="age" id="age" class="form-control" :value="data.age" disabled>
-                        </div>
-                    </div>
-                    <p align="left">Your Gender</p>
-                    <div class="row secondRow">
-                        <div class="row">
-                            <input type="radio" class="form-control" id="female" name="gender" value="Female" disabled>
-                            <label for="female">Female</label>
-                        </div>
-                        <div class="row">
-                            <input type="radio" class="form-control" id="male" name="gender" value="Male" disabled>
-                            <label for="male">Male</label>
                         </div>
                     </div>
                     <button style="display:none" class="btn btn-success submit" type="submit">Submit</button>
@@ -202,6 +185,7 @@ export default {
             forgetpass:false,
             reauthenticate:false,
             changePass:false,
+            isDisplay:false,
         }
     },
     methods:{
@@ -212,8 +196,6 @@ export default {
             });
             if(cond1){
                 elementDiv['name'].value = this.data.name
-                elementDiv['age'].value = this.data.age
-                elementDiv['gender'].value = this.data.gender
             }
             var parentDiv = document.querySelector('.'+button);
             parentDiv.style.display = "none";
@@ -228,13 +210,9 @@ export default {
         updateDetails(){
             var elementDiv = document.querySelector('.formClass');
             var name = elementDiv['name'].value
-            var age = elementDiv['age'].value
-            var gender = elementDiv['gender'].value 
             var vm = this
             db.collection('users').doc(this.index).update({
                 name:name,
-                age:age,
-                gender:gender
             }).catch(function (error) {
                 vm.error = true
                 vm.Msg = error.message
@@ -359,12 +337,9 @@ export default {
                 db.collection('users').doc(this.index).onSnapshot(snapshot =>{
                     var data = snapshot.data()
                     this.data = data;
-                    document.querySelectorAll('input[name="gender"]').forEach(element => {
-                        if (element.value == this.data.gender) {
-                            element.checked = true
-                        }
-                    });
                 })
+                this.$parent.loader = false
+                this.isDisplay = true
             }
         })
 
@@ -437,17 +412,7 @@ export default {
 .formClass input:focus{
     box-shadow: none;
 }
-.formClass input[type="radio"]{
-    cursor: pointer;
-    width:17px;
-    height:17px;
-    margin-left:100px;
-    margin-top:-5px;
-}
 
-#female{
-    margin-left:35px;
-}
 label{
     font-size:18px;
     font-weight: 800;

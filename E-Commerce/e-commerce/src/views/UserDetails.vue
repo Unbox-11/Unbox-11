@@ -11,28 +11,28 @@
                 <hr>
                 <form @submit.prevent="form_submit" class="validate-form">
                     <div class="validate-input">
-                        <input class="input100" type="text" name="name" placeholder="Name" :value="data.name" required>
+                        <input class="input100" type="text" name="name" placeholder="Name" v-model="name" required>
                         <span class="focus-input100"></span>
                     </div>
-                    <div class="validate-input row">
-                        <span class="label-input100">Gender</span>
-                        <div>
-                            <input type="radio" id="female" @click="gender" name="gender" value="Female">
-                            <label for="female">Female</label>
+                    <div class="mobile_number" align="left">
+                        <input type="text" value="+91" class="input100 codeDiv" disabled>
+                        <div class="validate-input mobile" data-validate = "Only Numbers are allowed">
+                            <input class="input100" type="tel" id="mobile_number" pattern="^[6-9]\d{9}$" maxlength="10" name="mobileNumber" v-model="mobile_number" placeholder="Mobile Number" required>
+                            <span class="focus-input100"></span>
                         </div>
-                        <div>
-                            <input type="radio" id="male" @click="gender" name="gender" value="Male">
-                            <label for="male">Male</label>
+                        <button type="button" id="verifyNumber" @click="verifyNumber" class="btn btn-outline-success" name="button">Verify</button>
+                    </div>
+                    <p v-if="feedback" class="text-danger" style="margin:-15px auto">&#9888; {{feedback}}</p>
+                    <p v-if="validate" class="text-success" style="margin:-15px auto">&#10003; {{validate}}</p>
+                    
+                    <div v-if="isVerifyNumber" class="mobile_number verifyCode" align="left">
+                        <div class="validate-input" data-validate = "Only Numbers are allowed">
+                            <input id="inputCode" class="input100" placeholder="Enter OTP Here" v-model="OTP" type="number" name="OTP_Code">
+                            <span class="focus-input100"></span>
                         </div>
+                        <button type="button" id="verifyCode" @click="verifyCode" class="btn btn-outline-success" name="button">Submit OTP</button>
                     </div>
-                    <div class="validate-input" data-validate = "Only Numbers are allowed">
-                        <input class="input100" type="number" name="age" v-model="data.age" placeholder="age" required>
-                        <span class="focus-input100"></span>
-                    </div>
-                    <div class="validate-input" data-validate = "Only Numbers are allowed">
-                        <input class="input100" type="number" name="mobileNumber" v-model="data.mobile_number" placeholder="Mobile Number" required>
-                        <span class="focus-input100"></span>
-                    </div>
+                    
                     <div class="validate-input" data-validate = "Address is required">
                         <textarea class="input100" name="address" placeholder="Address" required cols="30" rows="3"></textarea>
                         <span class="focus-input100"></span>
@@ -60,7 +60,7 @@
                     <div class="container-login100-form-btn m-auto">
                         <div class="wrap-login100-form-btn">
                             <div class="login100-form-bgbtn"></div>
-                            <button class="login100-form-btn">
+                            <button disabled class="login100-form-btn" data-toggle="tooltip" data-html="true" data-animation="delay: {show: 10, hide: 100 }" title="Verify Mobile Number First" >
                                 Save & Continue
                             </button>
                         </div>
@@ -83,6 +83,7 @@
 <script>
 import cities from './Profile/cities'
 import db from './Firebase _Overview/init'
+import firebase from 'firebase'
 export default {
     name: 'SignUp',
     components:{
@@ -94,12 +95,29 @@ export default {
             index:'',
             states:[],
             currentcities:[],
+            name:null,
+            mobile_number:null,
+            OTP:null,
             error:false,
             success:false,
             Msg:'',
+            feedback:null,
+            validate:null,
+            isVerifyNumber:false,
         }
     },
     methods:{
+        checkMobileNumber(){
+            if(this.mobile_number.length < 10)
+            {
+                this.feedback = 'Mobile number is invalid'
+                this.validate = null
+            }
+            else if (this.mobile_number.length == 10 && this.mobile_number.match(/^([6-9]\d{9})$/)) {
+                this.validate = 'Mobile number is valid'
+                this.feedback = null
+            }
+        },
         stateSelected(){
             var idx = parseInt(document.querySelector('select[name="state"]').value) + 1
             var city_arr = cities.s_a[idx].split("|");
@@ -114,34 +132,86 @@ export default {
             }
           })
         },
-        form_submit(){
-            var vm = this;
-            var name = document.querySelector('input[name="name"]').value
-            var gender
-            document.querySelectorAll('input[name="gender"]').forEach(element => {
-                if(element.checked){
-                    gender = element.value
+        verifyNumber(){
+            if (this.mobile_number.length == 10 && this.mobile_number.match(/^([6-9]\d{9})$/) && this.validate) {
+                
+                var newnum = '+91'+ this.mobile_number;
+
+                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('verifyNumber',{
+                    'size': 'invisible',
+                    'callback':function (response) {
+                        return
+                    }
+                });
+
+                var vm = this; 
+                var appVerifier = window.recaptchaVerifier;
+                firebase.auth().signInWithPhoneNumber(newnum, appVerifier).then(function (confirmationResult) {
+                    window.confirmationResult = confirmationResult;
+                    vm.isVerifyNumber= true
+                    vm.success = true
+                    vm.Msg = 'Successfully Sent OTP to Given Number!';
+                    setTimeout(() => {
+                        vm.success = false
+                    }, 4000);
+                }).catch(function (error) {
+                    window.recaptchaVerifier.render().then(function(widgetId) {
+                        grecaptcha.reset(widgetId);
+                    })
+                    vm.error = true
+                    vm.Msg = error.message + ' Refresh Page and try again in case of reCapche issue.'
+                    setTimeout(() => {
+                        vm.error = false
+                    }, 4000);
+                });
+            }else{
+                this.feedback = 'Mobile number is invalid'
+                this.validate = null
+            }
+        },
+        verifyCode(){
+            var vm = this
+            firebase.auth().onAuthStateChanged(user=>{
+                if(user){
+                    var credential = firebase.auth.PhoneAuthProvider.credential(confirmationResult.verificationId, vm.OTP);
+                    user.linkWithCredential(credential).then(function(usercred) {
+                        $("#mobile_number").prop('disabled','true');
+                        $("#verifyNumber").css('display','none')
+                        vm.isVerifyNumber = false
+                        $(".login100-form-btn").removeAttr('disabled');
+                        vm.validate = null
+                        vm.success = true
+                        vm.Msg = 'Successfully Verified Mobile Number!';
+                        setTimeout(() => {
+                            vm.success = false
+                        }, 4000);
+                    }).catch(function(error) {
+                        vm.error = true
+                        vm.Msg = error.message
+                        setTimeout(() => {
+                            vm.error = false
+                        }, 4000);
+                    });
                 }
             })
-            var mobileNumber = document.querySelector('input[name="mobileNumber"]').value
-            var age = document.querySelector('input[name="age"]').value
+        },
+        form_submit(){
+            var vm = this;
             var pincode = document.querySelector('input[name="pincode"]').value
             var locality = document.querySelector('input[name="locality"]').value
             var address = document.querySelector('textarea[name="address"]').value
             var state = document.querySelector('select[name="state"]').value
             state = this.states[state]
             var city = document.querySelector('select[name="city"]').value
-            var finalAddress = {'name': name, 'mobile_number':mobileNumber, 'address':address, 'locality':locality, 'city':city, 'state':state, 'pincode':pincode}
-            if (name != '' && age != null && gender != null && mobileNumber !=null && pincode != null && address !='' && state != '' && city != '')
+            var finalAddress = {'name': this.name, 'mobile_number':this.mobile_number, 'address':address, 'locality':locality, 'city':city, 'state':state, 'pincode':pincode}
+            if (this.name && this.mobile_number && pincode != null && address !='' && state != '' && city != '')
             {
                 var addresses = [finalAddress]
                 db.collection('users').doc(this.index).update({
-                    age:age,
                     country:'India',
                     addresses:addresses,
-                    gender:gender,
-                    mobile_number:mobileNumber,
-                    name:name,
+                    mobile_number:vm.mobile_number,
+                    name:vm.name,
                     imagelink:this.data.imagelink,
                 }).catch(function (error) {
                     vm.error = true
@@ -154,7 +224,7 @@ export default {
                     vm.Msg = 'SuccessFully Done'
                     setTimeout(() => {
                         vm.success = false
-                    }, 4000);
+                    }, 1000);
                     this.$router.push({name:"Start"})
                 })
                 
@@ -169,12 +239,18 @@ export default {
             }
         }
     },
+    watch:{
+        mobile_number:'checkMobileNumber'
+    },
     mounted(){
         document.documentElement.scrollTop = 0
+        this.$parent.loader = false
         this.index = this.$route.params.id
         db.collection('users').doc(this.index).get().then(snapshot =>{
             var data = snapshot.data()
             this.data = data;
+            this.name = data.name;
+            this.mobile_number = data.mobile_number
         })
         this.states = cities.state_arr
         var city_arr = cities.s_a[1].split("|");
@@ -216,6 +292,61 @@ export default {
 @-webkit-keyframes fadeInDown {
     from {
         transform: translate3d(0,-80px,0)
+    }
+
+    to {
+        transform: translate3d(0,0,0);
+        opacity: 1
+    }
+}
+.mobile_number{
+    position: relative;
+}
+.mobile_number .mobile {
+    margin-left:50px !important;
+}
+.codeDiv{
+    position: absolute;
+    width:50px !important;
+    top:-9.8px;
+    left:0;
+    z-index: 789654321;
+}
+#verifyNumber, #verifyCode{
+    border:1px solid;
+    position:absolute;
+    top:-10px;
+    right:0;
+    z-index: 789654321;
+}
+#inputCode{
+    position:relative;
+    left:0;
+    width:100%;
+}
+.verifyCode{
+    animation-duration: 1s;
+    animation-fill-mode: both;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-fill-mode: both;
+    opacity: 0;
+    animation-name: displayUp;
+    -webkit-animation-name: displayUp;
+}
+@keyframes displayUp {
+    from {
+        transform: translate3d(0,40px,0)
+    }
+
+    to {
+        transform: translate3d(0,0,0);
+        opacity: 1
+    }
+}
+
+@-webkit-keyframes displayUp {
+    from {
+        transform: translate3d(0,40px,0)
     }
 
     to {
@@ -280,6 +411,7 @@ input[type="number"]::-webkit-inner-spin-button {
 textarea {
   outline: none;
   border: none;
+  resize: none;
 }
 textarea:focus, input:focus {
   border-color: transparent !important;
@@ -406,23 +538,34 @@ select:focus{
   border-radius: 50px;
   height: 50px;
   font-size:21px;
-    background: #061b3df8;
-    margin:15px auto;
+  background: #061b3df8;
+  margin:15px auto;
   color: #fff;
   line-height: 1.2;
 }
 .validate-input {
   position: relative;
 }
-
+button:disabled{
+    background: #4878c5f8;
+    cursor:not-allowed;
+}
 @media (max-width: 368px) {
     label{
         width:70px;
     }
 }
 @media screen and (max-width: 420px) {
-    .form_container.container{
-        padding-bottom: 100px;
+    .form_container{
+        background: #fff;
+        position: absolute;
+        top:0;
+        left:0;
+    }
+    .form_container .container{
+        border-radius: 0px;
+        margin:0;
+        padding-bottom: 50px;
     }
     .form_container .login100-form-btn{
         position: fixed;

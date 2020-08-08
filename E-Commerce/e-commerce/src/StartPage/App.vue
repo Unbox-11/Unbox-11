@@ -5,7 +5,12 @@
     </div>
 
     <navbar v-if="!(exceptpage.includes(pagename))" />
-    <div style="min-height:100vh; height:100%;">
+    <div style="min-height:100vh; height:100%;position:relative">
+      <div v-if="loader" class="loaderDiv">
+        <span  class="loader">
+          <span class="loader-inner"></span>
+        </span>
+      </div>
       <router-view/>
     </div>
     
@@ -35,6 +40,7 @@ export default {
     return{
         pagename:'',
         exceptpage:['Login','SignUp'],
+        loader:true,
     }
   },
   methods:{
@@ -103,5 +109,79 @@ body::-webkit-scrollbar
 }
 .upward i{
   margin: 0 28%;
+}
+
+.loaderDiv{
+  width:100%;
+  height:100%;
+  position: absolute;
+  left:0;
+  right:0;
+  top:0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loader {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  z-index:3;
+  border: 4px solid #172337;
+  margin:auto auto;
+  animation: loader 2s infinite ease;
+}
+
+.loader-inner {
+  vertical-align: middle;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  background-color: #172337;
+  animation: loader-inner 2s infinite ease-in;
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+  
+  25% {
+    transform: rotate(180deg);
+  }
+  
+  50% {
+    transform: rotate(180deg);
+  }
+  
+  75% {
+    transform: rotate(360deg);
+  }
+  
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-inner {
+  0% {
+    height: 0%;
+  }
+  
+  25% {
+    height: 0%;
+  }
+  
+  50% {
+    height: 100%;
+  }
+  
+  75% {
+    height: 100%;
+  }
+  
+  100% {
+    height: 0%;
+  }
 }
 </style>

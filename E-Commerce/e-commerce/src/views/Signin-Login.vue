@@ -183,14 +183,11 @@ export default {
             {
                 firebase.auth().createUserWithEmailAndPassword(this.SignInemail, this.SignInpassword).then(cred =>{
                     return db.collection('users').doc(cred.user.uid).set({
-                            age:null,
                             country:'India',
                             name:null,
                             addresses:[],
                             mobile_number:null,
-                            gender:'female',
-                            imagelink:'../assets/Media/dp.png',
-                            cart:[],      
+                            imagelink:'../assets/Media/dp.png',     
                     }).then(()=>{
                         vm.$router.push({name:'SignUp',params:{id:cred.user.uid}})
                     })
@@ -240,14 +237,11 @@ export default {
                     }
                     else{
                         return db.collection('users').doc(result.user.uid).set({
-                            age:null,
                             country:'India',
                             addresses:[],
-                            gender:'female',
                             mobile_number:result.user.phoneNumber,
                             name:result.user.displayName,
                             imagelink:result.user.photoURL,
-                            cart:[],
                         }).catch(function (error) {
                             vm.error = true
                             vm.Msg = error.message
@@ -332,6 +326,7 @@ export default {
         },
     },
     mounted(){
+        this.$parent.loader = false
         document.documentElement.scrollTop = 0
         addEventListener("load", function () {
             setTimeout(hideURLbar, 0);

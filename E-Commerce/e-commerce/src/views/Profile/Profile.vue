@@ -83,6 +83,7 @@ export default {
             db.collection('users').doc(this.index).onSnapshot(snapshot =>{
                 var data = snapshot.data()
                 this.data = data;
+                this.$parent.loader = false
             })
         }
     })

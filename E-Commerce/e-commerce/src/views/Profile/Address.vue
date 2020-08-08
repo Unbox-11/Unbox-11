@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="isDisplay">
     <profile1>
         <template slot="mainPart">
             <div class="pos-fixed" style="position:fixed;left:0;right:0;z-index:98765432102;">
@@ -155,7 +155,8 @@ export default {
             delId:null,
             statestoShow:[],
             currentcities:[],
-            stateSelectedAlready:null
+            stateSelectedAlready:null,
+            isDisplay:false,
         }
     },
     methods:{
@@ -273,6 +274,8 @@ export default {
                     this.data = data;
                     this.addresses = snapshot.data().addresses
                 })
+                this.$parent.loader = false
+                this.isDisplay = true
             }
         })
         this.statestoShow = cities.state_arr

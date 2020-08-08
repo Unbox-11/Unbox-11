@@ -83,7 +83,7 @@ Vue.use(VueRouter)
     component: () => import(/* webpackChunkName: "about" */ '../views/ProductsAll/product.vue'),
   },
   {
-    path: '/order/:id',
+    path: '/order/:id/:size/:shape/:quantity',
     name: 'Order',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -113,6 +113,14 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Private Pages/productForm.vue'),
+  },
+  {
+    path: '/orders/:id/:prdId',
+    name: 'Information',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/Profile/Orders_Information.vue'),
   }
 ]
 
