@@ -84,6 +84,7 @@
 import cities from './Profile/cities'
 import db from './Firebase _Overview/init'
 import firebase from 'firebase'
+import emailjs from 'emailjs-com';
 export default {
     name: 'SignUp',
     components:{
@@ -207,25 +208,42 @@ export default {
             if (this.name && this.mobile_number && pincode != null && address !='' && state != '' && city != '')
             {
                 var addresses = [finalAddress]
-                db.collection('users').doc(this.index).update({
-                    country:'India',
-                    addresses:addresses,
-                    mobile_number:vm.mobile_number,
-                    name:vm.name,
-                    imagelink:this.data.imagelink,
-                }).catch(function (error) {
-                    vm.error = true
-                    vm.Msg = error.message
-                    setTimeout(() => {
-                        vm.error = false
-                    }, 4000);
-                }).then(() =>{
-                    vm.success = true
-                    vm.Msg = 'SuccessFully Done'
-                    setTimeout(() => {
-                        vm.success = false
-                    }, 1000);
-                    this.$router.push({name:"Start"})
+                firebase.auth().onAuthStateChanged(user=>{
+                    if (user) {
+                        db.collection('users').doc(this.index).update({
+                            country:'India',
+                            addresses:addresses,
+                            mobile_number:vm.mobile_number,
+                            name:vm.name,
+                            imagelink:this.data.imagelink,
+                        }).catch(function (error) {
+                            vm.error = true
+                            vm.Msg = error.message
+                            setTimeout(() => {
+                                vm.error = false
+                            }, 4000);
+                        }).then(() =>{
+                            var templateParams = {
+                                name: vm.name,
+                                notes: 'Check this out!',
+                                email:user.email,
+                            };
+                            emailjs.send('gmail', 'template_Ueboteth', templateParams, 'user_ZcEhe9tTmsBCPXqOmoMUw')
+                                .then((result) => {
+                                    console.log('SUCCESS!', result.status, result.text);
+                                }, (error) => {
+                                    console.log('FAILED...', error);
+                                });
+                            
+                            vm.success = true
+                            vm.Msg = 'SuccessFully Done'
+                            setTimeout(() => {
+                                vm.success = false
+                            }, 1000);
+                            this.$router.push({name:"Start"})
+                        })
+                
+                    }
                 })
                 
             }

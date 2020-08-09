@@ -136,33 +136,28 @@ export default {
   },
   created(){
     document.documentElement.scrollTop = 0
-    firebase.auth().onAuthStateChanged(user =>{
-        if(user)
-        {
-            var vm=this
-            db.collection('products').orderBy('name').limit(8).onSnapshot(snapshot =>{
+    var vm=this
+    db.collection('products').orderBy('name').onSnapshot(snapshot =>{
 
-                let changes = snapshot.docChanges();
-                changes.forEach(change => {
-                    if (change.type == 'added') {
-                        vm.products.push(change.doc);
-                    }
-                    if (change.type == 'removed') {
-                        vm.products = vm.products.filter(product => {
-                            return product.id != change.doc.id
-                        })
-                    }
-                    if (change.type === 'modified') {
-                        vm.products = vm.products.filter(product => {
-                            return product.id != change.doc.id
-                        })
-                        vm.products.push(change.doc);
-                    }
-                });
-                this.$parent.loader = false
-                this.isDisplay = true
-            })
-        }
+        let changes = snapshot.docChanges();
+        changes.forEach(change => {
+            if (change.type == 'added') {
+                vm.products.push(change.doc);
+            }
+            if (change.type == 'removed') {
+                vm.products = vm.products.filter(product => {
+                    return product.id != change.doc.id
+                })
+            }
+            if (change.type === 'modified') {
+                vm.products = vm.products.filter(product => {
+                    return product.id != change.doc.id
+                })
+                vm.products.push(change.doc);
+            }
+        });
+        this.$parent.loader = false
+        this.isDisplay = true
     })
     setTimeout(() => {
       var element = document.querySelector(".unstyled");

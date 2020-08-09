@@ -32,9 +32,9 @@
           <div class="collapse navbar-collapse" id="Itemlist" align="left">
              <ul class="navbar-nav ml-auto navbar-right">
                <li class="nav-item dropdown profileDrop" v-if="isAuthenticated">
-                  <a class="nav-link custom-toggler" href="#" @mouseover="ProfileMouseOver" @mouseout="ProfileMouseOut" id="profileDropDown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <a class="nav-link custom-toggler" href="#" id="profileDropDown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{name}} <i id="dropdownToggle" class="fa fa-angle-down"></i>
-                  </a><!--"-->
+                  </a>
                   <div class="dropdown-menu" aria-labelledby="profileDropDown" @mouseover="ProfileMouseOver" @mouseout="ProfileMouseOut">
                     <router-link class="dropdown-item" @click.native="navbarClass" :to="{name:'Notifications'}">Notifications</router-link>
                     <router-link class="dropdown-item" @click.native="navbarClass" :to="{name:'Orders'}">My Order</router-link>
@@ -121,15 +121,13 @@ export default {
       $(".navbar-collapse").collapse('hide');
     },
     ProfileMobile(){
-        // $('#profileDropDown').next('.dropdown-menu').slideToggle("slow");
+        $('#profileDropDown').next('.dropdown-menu').slideToggle("slow");
       if($('.profileDrop').hasClass('show')){
-        $(".profileDrop").find(".dropdown-menu").dropdown('hide');
-          document.querySelector("#dropdownToggle").classList.remove("fa-angle-up");
-          document.querySelector("#dropdownToggle").classList.add("fa-angle-down");
+          document.querySelector("#dropdownToggle").classList.add("fa-angle-up");
+          document.querySelector("#dropdownToggle").classList.remove("fa-angle-down");
       }else{
-         $(".profileDrop").find(".dropdown-menu").dropdown('show');
-        document.querySelector("#dropdownToggle").classList.remove("fa-angle-down");
-        document.querySelector("#dropdownToggle").classList.add("fa-angle-up");
+        document.querySelector("#dropdownToggle").classList.add("fa-angle-down");
+        document.querySelector("#dropdownToggle").classList.remove("fa-angle-up");
       }
         
     },
@@ -146,6 +144,7 @@ export default {
   },
   mounted(){  
     this.results = []
+    
     document.body.addEventListener("click", function(e){
       if(e.target.classList.contains('navbar') || e.target.classList.contains('navbar-collapse in')
         && !e.target.classList.contains("navbar-toggle"))
@@ -172,10 +171,20 @@ export default {
                 var data = snapshot.data()
                 var name = data.name.split(' ')
                 this.name = name[0];
+                if (window.innerWidth > 1195) {
+                    document.querySelector('#profileDropDown').addEventListener('mouseover',vm.ProfileMouseOver)
+                    document.querySelector("#profileDropDown").addEventListener('mouseout',vm.ProfileMouseOut)
+                    document.querySelector("#profileDropDown").addEventListener('click', function(){return false})
+                  } else {
+                    document.querySelector('#profileDropDown').addEventListener('mouseover', function(){return false})
+                    document.querySelector("#profileDropDown").addEventListener('mouseout', function(){return false})
+                    document.querySelector("#profileDropDown").addEventListener('click',vm.ProfileMobile)
+                  }
             })
         }
     })
     document.documentElement.scrollTop = 0
+   
     var vm=this
     db.collection('products').orderBy('name').onSnapshot(snapshot =>{
 
@@ -196,8 +205,20 @@ export default {
                 vm.suggestions.push(change.doc);
             }
         });
+        
 
     })
+     window.resize = function () {
+      if (window.innerWidth > 1195) {
+          document.querySelector('#profileDropDown').addEventListener('mouseover',vm.ProfileMouseOver)
+          document.querySelector("#profileDropDown").addEventListener('mouseout',vm.ProfileMouseOut)
+          document.querySelector("#profileDropDown").addEventListener('click', function(){return false})
+        } else {
+          document.querySelector('#profileDropDown').addEventListener('mouseover', function(){return false})
+          document.querySelector("#profileDropDown").addEventListener('mouseout', function(){return false})
+          document.querySelector("#profileDropDown").addEventListener('click',vm.ProfileMobile)
+        }
+    }
   }
 }
 </script>
@@ -340,7 +361,7 @@ a.router-link-exact-active{
   left:0px;                      
   top: -20px;             
 }
-@media screen and (max-width:1024px){
+@media screen and (max-width:1195px){
   .profileDrop .dropdown-menu::before{                   
   top: 30px;          
   }
