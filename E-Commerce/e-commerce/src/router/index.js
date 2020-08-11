@@ -115,6 +115,22 @@ Vue.use(VueRouter)
     component: () => import(/* webpackChunkName: "about" */ '../views/Private Pages/productForm.vue'),
   },
   {
+    path: '/products_to_delivered 0092257447/',
+    name: 'AdminOrders',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/Private Pages/admin_orders.vue'),
+  },
+  {
+    path: '/products_to_delivered_0092257447/:id',
+    name: 'AdminOrdersToDeliver',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/Private Pages/admin_orders_information.vue'),
+  },
+  {
     path: '/orders/:id/:prdId',
     name: 'Information',
     // route level code-splitting

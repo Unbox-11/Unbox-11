@@ -188,6 +188,13 @@ export default {
             state = this.statestoShow[state]
             var city = addressForm['city'].value
             var mobileNumber1 = addressForm['mobileNumber1'].value
+            if (!(mobileNumber1)) {
+                firebase.auth().onAuthStateChanged(user=>{
+                    if(user){
+                        mobileNumber1 = user.phoneNumber
+                    }
+                })
+            }
             var finalAddress ={'name': name, 'mobile_number':mobileNumber, 'alternate_Number':mobileNumber1, 'address':address, 'locality':locality, 'city':city, 'state':state, 'pincode':pincode}
             this.addresses.push(finalAddress)
             var vm = this

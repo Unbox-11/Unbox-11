@@ -96,7 +96,7 @@ table{
 </style>
 
 <template>
-  <div>
+  <div v-if="isDisplay">
     <div v-if="reauthenticateWindow">
         <transition name="modal">
             <div class="modal-mask">
@@ -301,6 +301,7 @@ export default {
     },
     data(){
         return{
+            isDisplay:false,
             reauthenticateWindow:false,
             isAdmin:true,
             reauthenticate:false,
@@ -647,7 +648,8 @@ export default {
                             vm.products.push(change.doc);
                         }
                     });
-
+                    vm.isDisplay = true
+                    this.$parent.loader = false
                 })
            }
         })

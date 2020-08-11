@@ -84,7 +84,6 @@
 import cities from './Profile/cities'
 import db from './Firebase _Overview/init'
 import firebase from 'firebase'
-import emailjs from 'emailjs-com';
 export default {
     name: 'SignUp',
     components:{
@@ -223,17 +222,17 @@ export default {
                                 vm.error = false
                             }, 4000);
                         }).then(() =>{
-                            var templateParams = {
-                                name: vm.name,
-                                notes: 'Check this out!',
-                                email:user.email,
-                            };
-                            emailjs.send('gmail', 'template_Ueboteth', templateParams, 'user_ZcEhe9tTmsBCPXqOmoMUw')
-                                .then((result) => {
-                                    console.log('SUCCESS!', result.status, result.text);
-                                }, (error) => {
-                                    console.log('FAILED...', error);
-                                });
+                            // var templateParams = {
+                            //     name: vm.name,
+                            //     notes: 'Check this out!',
+                            //     email:user.email,
+                            // };
+                            // emailjs.send('gmail', 'template_Ueboteth', templateParams, 'user_ZcEhe9tTmsBCPXqOmoMUw')
+                            //     .then((result) => {
+                            //         console.log('SUCCESS!', result.status, result.text);
+                            //     }, (error) => {
+                            //         console.log('FAILED...', error);
+                            //     });
                             
                             vm.success = true
                             vm.Msg = 'SuccessFully Done'

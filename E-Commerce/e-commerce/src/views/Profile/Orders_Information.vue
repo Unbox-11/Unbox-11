@@ -33,8 +33,8 @@
                     <h3>Size: {{order.product[prdIndex].size}}</h3>
                     <h3>Shape: {{order.product[prdIndex].shape}} </h3>
                     <h4>Payment Mode: {{order.payment}}</h4>
-                    <h4>Ordered On: {{order.status.ordered_on.date}}</h4>
-                    <h4 v-if="order.status.ordered_on.isDelivered">Delivered On: {{order.status.delivered_on}}</h4>
+                    <h4>Ordered On: {{order.status.ordered_on.date.toDate()}}</h4>
+                    <h4 v-if="order.status.ordered_on.isDelivered">Delivered On: {{order.status.delivered_on.toDate()}}</h4>
                 </div>
             </div>
         </div>
@@ -61,7 +61,7 @@ export default {
     data(){
         return{
             index:null,
-            prdIndex:[],
+            prdIndex:null,
             product:[],
             order:[],
             isDisplay:false
@@ -79,18 +79,13 @@ export default {
         firebase.auth().onAuthStateChanged(user =>{
                 if(user)
                 {
-                    db.collection('user_orders').doc(user.uid).onSnapshot(snapshot =>{
+                    db.collection('user_orders').doc(user.uid).collection('userorder').doc(this.index).onSnapshot(snapshot =>{
                         var orders = snapshot.data()
-                        vm.order = []
+                        vm.order = orders
                         vm.product = []
-                        var set = $.map( orders, function( value, index ) {
-                            if (index.toString() === vm.index) {
-                                vm.order = value
-                                db.collection('products').doc(value.product[vm.prdIndex].id).get().then(data => {
-                                    vm.product = data.data()
-                                })   
-                            }
-                        });
+                        db.collection('products').doc(snapshot.data().product[vm.prdIndex].id).get().then(data => {
+                            vm.product = data.data()
+                        })   
                         vm.isDisplay = true
                         this.$parent.loader = false
                     })

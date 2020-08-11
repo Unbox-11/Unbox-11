@@ -10,10 +10,10 @@
                     <div class="card-body">
                         <h4 class="card-title">{{prod.name}}</h4>
                         <h5 class="card-text">&#8377; {{prod.price}}</h5>
-                        <h5 class="card-text">Quantity: {{orders[idx].quantity}}</h5>
+                        <h5 class="card-text">Quantity: {{ordersitems[idx].quantity}}</h5>
                     </div>
                     <div class="card-footer">
-                        <button @click="$router.push({name:'Information', params:{id:ordersindex[idx], prdId:prdIndex[idx]}})" class=" form-control btn btn-secondary">View More</button>
+                        <button @click="$router.push({name:'Information', params:{id:orders[idx].id, prdId:prdIdx[idx]}})" class=" form-control btn btn-secondary">View More</button>
                     </div>
                 </div>
             </div>
@@ -48,11 +48,11 @@ export default {
     data(){
         return{
             orders:[],
-            ordersindex:[],
+            ordersitems:[],
             product:[],
             isDisplay:false,
             Notany:false,
-            prdIndex:[],
+            prdIdx:[],
         }
     },
     created(){
@@ -61,23 +61,26 @@ export default {
                 if(user)
                 {
                     this.$parent.loader = true
-                    db.collection('user_orders').doc(user.uid).onSnapshot(snapshot =>{
-                        var orders = snapshot.data()
-                        vm.orders = []
-                        vm.product = []
-                        var set = $.map( orders, function( value, index ) {
-                            value.product.forEach((product, idx) => {
-                                vm.prdIndex.push(idx)
-                                vm.ordersindex.push(index)
-                                vm.orders.push(product)
-                                var prod = db.collection('products').doc(product.id).onSnapshot(snapshot=>{
-                                    var arr = snapshot.data()
-                                    vm.product.push(arr)
-                                })
-                            });
+                    db.collection('user_orders').doc(user.uid).collection('userorder').orderBy('status.ordered_on.date', 'desc').onSnapshot(snapshot =>{
+                        let changes = snapshot.docChanges();
+                        changes.forEach(change => {
+                            if (change.type == 'added') {
+                                change.doc.data().product.forEach((product, idx) => {
+                                    vm.orders.push(change.doc)
+                                    vm.prdIdx.push(idx)
+                                    vm.ordersitems.push(product)
+                                    db.collection('products').doc(product.id).onSnapshot(snapshot=>{
+                                        var arr = snapshot.data()
+                                        vm.product.push(arr)
+                                    })
+                                });
+                            }
+                            if (change.type == 'modified'){
+                                this.$router.go(0)
+                            }
                         });
                         this.$parent.loader = false
-                        if(vm.product.lemgth > 0){
+                        if(vm.product){
                             vm.isDisplay = true
                             vm.Notany = false
                         }

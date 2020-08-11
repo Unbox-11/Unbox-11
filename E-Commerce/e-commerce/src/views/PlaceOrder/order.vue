@@ -245,6 +245,13 @@ export default {
           state = this.statestoShow[state]
           var city = addressForm['city'].value
           var mobileNumber1 = addressForm['mobileNumber1'].value
+          if (!(mobileNumber1)) {
+                firebase.auth().onAuthStateChanged(user=>{
+                    if(user){
+                        mobileNumber1 = user.phoneNumber
+                    }
+                })
+            }
           var finalAddress ={'name': name, 'mobile_number':mobileNumber, 'alternate_Number':mobileNumber1, 'address':address, 'locality':locality, 'city':city, 'state':state, 'pincode':pincode}
           this.addresses.push(finalAddress)
           var vm = this
@@ -332,71 +339,40 @@ export default {
           this.isPayment = true;
         },
         checkout(){
-            document.querySelectorAll('input[name= paymentOptions]').forEach(element => {
-              if(element.checked){
-                this.payment = element.value;
+          document.querySelectorAll('input[name= paymentOptions]').forEach(element => {
+            if(element.checked){
+              this.payment = element.value;
+            }
+          })
+          if (this.payment) {
+            var vm =this
+            firebase.auth().onAuthStateChanged(user =>{
+              if(user){
+                  db.collection('user_orders').doc(user.uid).collection('userorder').add({
+                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                    product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
+                    selectedaddresses:this.selectedAddress,
+                    payment: this.payment,
+                  }).then(result=>{
+                    var prodid = vm.index + vm.size + vm.shape;
+                    db.collection('Cart').doc(user.uid).update({
+                      [prodid]:firebase.firestore.FieldValue.delete()
+                    }).then(()=>{
+                      db.collection('admin_orders').add({
+                          status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                          product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
+                          selectedaddresses:this.selectedAddress,
+                          payment: this.payment,
+                          useruid: user.uid,
+                          productId:result.id,
+                      }).then(() =>{
+                        this.$router.push({name:'Orders'})
+                      })
+                    })
+                  })
               }
             })
-            if (this.payment) {
-              var information ={
-                status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
-                product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
-                selectedaddresses:this.selectedAddress,
-                payment: this.payment
-              }
-              var vm =this
-              firebase.auth().onAuthStateChanged(user =>{
-                  if(user){
-                        db.collection('user_orders').doc(user.uid).get().then(snapshot=>{
-                          if (snapshot.exists) {
-                            var data = snapshot.data()
-                            var fieldname
-                            Object.keys(data).forEach(function(key) {
-                              fieldname = parseInt(key)
-                            })
-                            fieldname = (fieldname + 1).toString()
-                            var prodid = vm.index + vm.size + vm.shape;
-                            db.collection('user_orders').doc(user.uid).update({
-                              [fieldname]:information
-                            }).then(()=>{
-                              db.collection('Cart').doc(user.uid).update({
-                                [prodid]:firebase.firestore.FieldValue.delete()
-                              }).then(()=>{
-                                db.collection('admin_orders').add({
-                                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
-                                    product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
-                                    selectedaddresses:this.selectedAddress,
-                                    payment: this.payment,
-                                    useruid: user.uid,
-                                }).then(() =>{
-                                  this.$router.push({name:'Orders'})
-                                })
-                              })
-                            })
-                          } else {
-                            var prodid = vm.index + vm.size + vm.shape;
-                            db.collection('user_orders').doc(user.uid).set({
-                              '1':information
-                            }).then(()=>{
-                              db.collection('Cart').doc(user.uid).update({
-                                [prodid]:firebase.firestore.FieldValue.delete()
-                              }).then(()=>{
-                                  db.collection('admin_orders').add({
-                                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
-                                    product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
-                                    selectedaddresses:this.selectedAddress,
-                                    payment: this.payment,
-                                    useruid: user.uid,
-                                  }).then(() =>{
-                                    this.$router.push({name:'Orders'})
-                                  })
-                              })
-                            })
-                          }
-                        })
-                  }
-              })
-            }
+          }
         },
     },
     mounted(){
