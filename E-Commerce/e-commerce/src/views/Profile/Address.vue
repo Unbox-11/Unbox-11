@@ -134,8 +134,7 @@
 <script>
 import profile from './Profile'
 import cities from './cities'
-import db from '../Firebase _Overview/init'
-import firebase from 'firebase'
+import {db, auth} from '../Firebase _Overview/init'
 export default {
     name: 'Address',
     components:{
@@ -189,7 +188,7 @@ export default {
             var city = addressForm['city'].value
             var mobileNumber1 = addressForm['mobileNumber1'].value
             if (!(mobileNumber1)) {
-                firebase.auth().onAuthStateChanged(user=>{
+                auth.onAuthStateChanged(user=>{
                     if(user){
                         mobileNumber1 = user.phoneNumber
                     }
@@ -272,7 +271,7 @@ export default {
         },
     },
     created(){
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
             if(user){
                 this.index = user.uid
                 this.email = user.email

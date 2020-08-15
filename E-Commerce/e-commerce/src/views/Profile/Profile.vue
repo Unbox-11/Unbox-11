@@ -55,8 +55,7 @@
           integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
   
 <script>
-import db from '../Firebase _Overview/init'
-import firebase from 'firebase'
+import {db, auth} from '../Firebase _Overview/init'
 export default {
     name: 'Profile',
     components: {
@@ -77,7 +76,7 @@ export default {
     },
   },
   mounted(){
-    firebase.auth().onAuthStateChanged(user =>{
+    auth.onAuthStateChanged(user =>{
         if(user){
             this.index = user.uid
             db.collection('users').doc(this.index).onSnapshot(snapshot =>{

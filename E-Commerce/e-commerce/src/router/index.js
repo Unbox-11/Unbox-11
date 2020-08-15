@@ -8,7 +8,8 @@ Vue.use(VueRouter)
   {
     path: '/',
     name: 'Start',
-    component: Home1
+    component: Home1,
+    meta: { title: 'Unbox' }
   },
   {
     path: '/about',
@@ -17,6 +18,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
+    meta: { title: 'About Us' }
   },
   {
     path: '/profile/details',
@@ -25,6 +27,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Profile/Details.vue'),
+    meta: { title: 'My Details' }
   },
   {
     path: '/profile/addresses',
@@ -33,6 +36,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Profile/Address.vue'),
+    meta: { title: 'My Addresses' }
   },
   {
     path: '/profile/orders',
@@ -41,6 +45,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Profile/Orders.vue'),
+    meta: { title: 'My Orders' }
   },
   {
     path: '/profile/notifications',
@@ -49,6 +54,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Profile/Notifications.vue'),
+    meta: { title: 'My Notifications' }
   },
   {
     path: '/profile/coupons',
@@ -57,6 +63,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Profile/Coupons.vue'),
+    meta: { title: 'My Coupons' }
   },
   {
     path: '/cart',
@@ -65,6 +72,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/PlaceOrder/Cart.vue'),
+    meta: { title: 'Cart' }
   },
   {
     path: '/products',
@@ -73,22 +81,27 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/ProductsAll/Products.vue'),
+    meta: { title: 'Products' }
   },
   {
-    path: '/product/:id',
+    path: '/product/:id/:name',
     name: 'Product',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/ProductsAll/product.vue'),
+    meta:{
+        title : 'Product'
+      },
   },
   {
-    path: '/order/:id/:size/:shape/:quantity',
+    path: '/order/:id :name :size :shape :quantity',
     name: 'Order',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/PlaceOrder/order.vue'),
+    meta: { title: 'Order' }
   },
   {
     path: '/login',
@@ -97,6 +110,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Signin-Login.vue'),
+    meta: { title: 'Log In' }
   },
   {
     path: '/sign_up_form/:id',
@@ -105,6 +119,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/UserDetails.vue'),
+    meta: { title: 'User Details' }
   },
   {
     path: '/product_adding_form_only_for_team 0092257447/',
@@ -113,6 +128,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Private Pages/productForm.vue'),
+    meta: { title: 'Products Form' }
   },
   {
     path: '/products_to_delivered 0092257447/',
@@ -121,6 +137,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Private Pages/admin_orders.vue'),
+    meta: { title: 'Orders Delivery' }
   },
   {
     path: '/products_to_delivered_0092257447/:id',
@@ -129,6 +146,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Private Pages/admin_orders_information.vue'),
+    meta: { title: 'Orders Delivery' }
   },
   {
     path: '/orders/:id/:prdId',
@@ -137,6 +155,7 @@ Vue.use(VueRouter)
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Profile/Orders_Information.vue'),
+    meta: { title: 'Summary' }
   }
 ]
 
@@ -145,5 +164,11 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes
 })
-
+router.afterEach((to) => {
+    // Use next tick to handle router history correctly
+    // see: https://github.com/vuejs/vue-router/issues/914#issuecomment-384477609
+    Vue.nextTick(() => {
+        document.title = to.params.name || to.meta.title || 'Unbox'
+    });
+});
 export default router

@@ -82,8 +82,7 @@
  
 <script>
 import cities from './Profile/cities'
-import db from './Firebase _Overview/init'
-import firebase from 'firebase'
+import {db, auth} from './Firebase _Overview/init'
 export default {
     name: 'SignUp',
     components:{
@@ -137,7 +136,7 @@ export default {
                 
                 var newnum = '+91'+ this.mobile_number;
 
-                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('verifyNumber',{
+                window.recaptchaVerifier = new auth.RecaptchaVerifier('verifyNumber',{
                     'size': 'invisible',
                     'callback':function (response) {
                         return
@@ -146,7 +145,7 @@ export default {
 
                 var vm = this; 
                 var appVerifier = window.recaptchaVerifier;
-                firebase.auth().signInWithPhoneNumber(newnum, appVerifier).then(function (confirmationResult) {
+                auth.signInWithPhoneNumber(newnum, appVerifier).then(function (confirmationResult) {
                     window.confirmationResult = confirmationResult;
                     vm.isVerifyNumber= true
                     vm.success = true
@@ -171,9 +170,9 @@ export default {
         },
         verifyCode(){
             var vm = this
-            firebase.auth().onAuthStateChanged(user=>{
+            auth.onAuthStateChanged(user=>{
                 if(user){
-                    var credential = firebase.auth.PhoneAuthProvider.credential(confirmationResult.verificationId, vm.OTP);
+                    var credential = auth.PhoneAuthProvider.credential(confirmationResult.verificationId, vm.OTP);
                     user.linkWithCredential(credential).then(function(usercred) {
                         $("#mobile_number").prop('disabled','true');
                         $("#verifyNumber").css('display','none')
@@ -207,7 +206,7 @@ export default {
             if (this.name && this.mobile_number && pincode != null && address !='' && state != '' && city != '')
             {
                 var addresses = [finalAddress]
-                firebase.auth().onAuthStateChanged(user=>{
+                auth.onAuthStateChanged(user=>{
                     if (user) {
                         db.collection('users').doc(this.index).update({
                             country:'India',

@@ -9,7 +9,7 @@
           <div class="container" style="position:relative; max-width:600px;">
             <form @submit.prevent class="form-group  searchbox">
               <input class="form-control"  autocomplete="off" spellcheck="true" type="search" placeholder="Search" name="Search" @change="auto" @input="auto" v-model="searchitem">
-              <button class="btn btn-default" type="submit"><i class="fa fa-search"></i></button>
+              <button class="btn btn-default" name="Search" type="submit"><i class="fa fa-search"></i></button>
             </form>
             <div class="dropdown">
               <div v-if="results" class="dropdown-menu">
@@ -63,8 +63,7 @@
           integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
 <script>
-import db from '../views/Firebase _Overview/init'
-import firebase from 'firebase'
+import {db, auth} from '../views/Firebase _Overview/init'
 export default {
   name: 'Navbar',
   components: {
@@ -108,7 +107,7 @@ export default {
     },
     logout(){
       var vm = this 
-      firebase.auth().signOut().then(function() {
+      auth.signOut().then(function() {
         vm.isAuthenticated = false
       })
     },
@@ -163,7 +162,7 @@ export default {
 
     }
     })
-    firebase.auth().onAuthStateChanged(user =>{
+    auth.onAuthStateChanged(user =>{
         if(user){
             this.index = user.uid
             this.isAuthenticated = true

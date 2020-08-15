@@ -136,9 +136,8 @@
 </template>
 
 <script>
-import db from './Firebase _Overview/init'
-import firebase from 'firebase/app';
-import 'firebase/auth';
+import {db, auth} from './Firebase _Overview/init'
+import fireabase from 'firebase'
 export default {
     name: 'Login',
     components:{
@@ -181,7 +180,7 @@ export default {
             var vm = this
             if(this.SignInemail != '' && this.SignInpassword !== '' && this.SigncheckPassword !== '' && this.SignInpassword === this.SigncheckPassword)
             {
-                firebase.auth().createUserWithEmailAndPassword(this.SignInemail, this.SignInpassword).then(cred =>{
+                auth.createUserWithEmailAndPassword(this.SignInemail, this.SignInpassword).then(cred =>{
                     return db.collection('users').doc(cred.user.uid).set({
                             country:'India',
                             name:null,
@@ -229,8 +228,8 @@ export default {
         },
         SignInWithGoogle(){
             var vm = this
-            const base_provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(base_provider).then(function(result) {
+            const base_provider = new fireabase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(base_provider).then(function(result) {
                 db.collection('users').doc(result.user.uid).get().then(snapshot =>{
                     if(snapshot.exists){
                        vm.$router.push({name:"Start"})
@@ -260,7 +259,7 @@ export default {
             this.loginEmail = document.querySelector('input[id=Loginemail]').value
             this.loginpassword = document.querySelector('input[id=Loginpassword]').value
             if (this.loginEmail != '' && this.loginpassword != '') {
-                firebase.auth().signInWithEmailAndPassword(this.loginEmail, this.loginpassword).then(function () {
+                auth.signInWithEmailAndPassword(this.loginEmail, this.loginpassword).then(function () {
                     vm.$router.push({name:"Start"})
                 }).catch(function (error) {
                     vm.error = true
@@ -291,7 +290,7 @@ export default {
             var vm = this
             this.resetEmail = document.querySelector('input[id=resetEmail]').value
             if (this.resetEmail != '') {
-                firebase.auth().sendPasswordResetEmail(this.resetEmail).then(function() {
+                auth.sendPasswordResetEmail(this.resetEmail).then(function() {
                     document.querySelector("#passwordreset").style.display = 'none'
                     vm.success = true
                     vm.Msg = 'Password Link Is SuccessFully Sent On Given Mail.'

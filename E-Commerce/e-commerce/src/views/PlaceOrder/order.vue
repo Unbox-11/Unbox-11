@@ -83,14 +83,14 @@
                           <div class="card-horizontal">
                             <div class="row">
                               <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12" align="center">
-                                <router-link :to="{name:'Product',params:{id:product.id}}">
+                                <router-link :to="{name:'Product',params:{id:product.id, name: product.data().name}}">
                                   <img class="card-img" :src="product.data().imageLink" alt="Card image">
                                 </router-link>
                               </div>
                               <div class="col-xl-8 col-lg-8 col-md-8 col-sm-12 col-xs-12"  align="center">
                                 <div class="card-body" align="center">
                                   <div align="left">
-                                    <router-link :to="{name:'Product',params:{id:product.id}}">
+                                    <router-link :to="{name:'Product',params:{id:product.id, name: product.data().name}}">
                                       <h4 class="card-title">{{product.data().name}}</h4>
                                     </router-link>
                                     <p class="card-text">
@@ -190,11 +190,13 @@
 
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
           integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
- 
+<script src="https://checkout.razorpay.com/v1/checkout.js'"></script>
+
 <script>
-import firebase from 'firebase'
-import db from '../Firebase _Overview/init'
+import {db, auth} from '../Firebase _Overview/init'
 import cities from '../Profile/cities'
+import firebase from 'firebase'
+import axios from 'axios'
 export default {
     name: 'Checkout',
     components:{
@@ -246,7 +248,7 @@ export default {
           var city = addressForm['city'].value
           var mobileNumber1 = addressForm['mobileNumber1'].value
           if (!(mobileNumber1)) {
-                firebase.auth().onAuthStateChanged(user=>{
+                auth.onAuthStateChanged(user=>{
                     if(user){
                         mobileNumber1 = user.phoneNumber
                     }
@@ -255,7 +257,7 @@ export default {
           var finalAddress ={'name': name, 'mobile_number':mobileNumber, 'alternate_Number':mobileNumber1, 'address':address, 'locality':locality, 'city':city, 'state':state, 'pincode':pincode}
           this.addresses.push(finalAddress)
           var vm = this
-          firebase.auth().onAuthStateChanged(user =>{
+          auth.onAuthStateChanged(user =>{
             if(user){
                    db.collection('users').doc(user.uid).update({
                       addresses:vm.addresses,
@@ -344,35 +346,97 @@ export default {
               this.payment = element.value;
             }
           })
-          if (this.payment) {
-            var vm =this
-            firebase.auth().onAuthStateChanged(user =>{
-              if(user){
-                  db.collection('user_orders').doc(user.uid).collection('userorder').add({
-                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
-                    product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
-                    selectedaddresses:this.selectedAddress,
-                    payment: this.payment,
-                  }).then(result=>{
-                    var prodid = vm.index + vm.size + vm.shape;
-                    db.collection('Cart').doc(user.uid).update({
-                      [prodid]:firebase.firestore.FieldValue.delete()
-                    }).then(()=>{
-                      db.collection('admin_orders').add({
-                          status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
-                          product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
-                          selectedaddresses:this.selectedAddress,
-                          payment: this.payment,
-                          useruid: user.uid,
-                          productId:result.id,
-                      }).then(() =>{
-                        this.$router.push({name:'Orders'})
-                      })
+          var vm =this
+          auth.onAuthStateChanged(user =>{
+            if(user){ 
+              if (this.payment === 'CashOnDelivery') {
+                db.collection('user_orders').doc(user.uid).collection('userorder').add({
+                  status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                  product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape, cancel:false}],
+                  selectedaddresses:this.selectedAddress,
+                  payment: this.payment,
+                }).then(result=>{
+                  var prodid = vm.index + vm.size + vm.shape;
+                  db.collection('Cart').doc(user.uid).update({
+                    [prodid]:firebase.firestore.FieldValue.delete()
+                  }).then(()=>{
+                    db.collection('admin_orders').add({
+                        status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                        product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
+                        selectedaddresses:this.selectedAddress,
+                        payment: this.payment,
+                        useruid: user.uid,
+                        orderid:result.id,
+                    }).then(() =>{
+                      this.$router.push({name:'Orders'})
                     })
                   })
+                })
               }
-            })
-          }
+              else{
+                //Add A WebHook when website is live
+                var options = {
+                  amount: vm.total,
+                  currency: "INR",
+                  payment_capture: '0',
+                };
+                const data = axios.post('/razorpay', options).then((t)=>{
+                  var payment = {
+                      "key": t.data.key,
+                      "amount": vm.total * 100,
+                      "currency": "INR",
+                      "name": "Unbox",
+                      "description": "Trust us for the betterment of Tomorrow",
+                      "order_id": t.data.id,
+                      "handler": function (response){
+                        var result = {
+                          razorpay_payment_id : response.razorpay_payment_id,
+                          razorpay_order_id : response.razorpay_order_id,
+                          razorpay_signature : response.razorpay_signature,
+                        }
+                        axios.post('/razorpay/verification', result).then((t)=>{
+                          if (t.data.successful) {
+                            db.collection('user_orders').doc(user.uid).collection('userorder').add({
+                              status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                              product:[{id:vm.index, quantity:vm.quantity, size:vm.quantity, shape:vm.shape, cancel:false}],
+                              selectedaddresses:vm.selectedAddress,
+                              payment: vm.payment,
+                              payment_id:response.razorpay_payment_id
+                            }).then(result=>{
+                              var prodid = vm.index + vm.size + vm.shape;
+                              db.collection('Cart').doc(user.uid).update({
+                                [prodid]:firebase.firestore.FieldValue.delete()
+                              }).then(()=>{
+                                db.collection('admin_orders').add({
+                                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                                    product:[{id:vm.index, quantity:vm.quantity, size:vm.quantity, shape:vm.shape}],
+                                    selectedaddresses:vm.selectedAddress,
+                                    payment: vm.payment,
+                                    useruid: user.uid,
+                                    orderid:result.id,
+                                    payment_id:response.razorpay_payment_id
+                                }).then(() =>{
+                                  vm.$router.push({name:'Orders'})
+                                })
+                              })
+                            })
+                          }
+                        })
+                      },
+                      "prefill": {
+                          "name": vm.selectaddress.name,
+                          "email": user.email,
+                          "contact": user.phoneNumber
+                      },
+                  };
+                  var rzp1 = new Razorpay(payment);
+                  rzp1.open();
+                })
+                
+                    
+              }
+            }
+          })
         },
     },
     mounted(){
@@ -382,7 +446,7 @@ export default {
         this.size = this.$route.params.size
         this.shape = this.$route.params.shape
         var vm =this
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
             if(user){
               this.$parent.loader = true
                   db.collection('users').doc(user.uid).onSnapshot(snapshot=>{
@@ -426,7 +490,9 @@ export default {
         }
         
       }
-
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      document.body.appendChild(script)
         
     },
     updated(){

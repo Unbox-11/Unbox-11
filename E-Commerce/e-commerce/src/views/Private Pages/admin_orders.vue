@@ -215,8 +215,8 @@ table{
           integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
   
 <script>
+import {db, auth} from '../Firebase _Overview/init'
 import firebase from 'firebase'
-import db from '../Firebase _Overview/init'
 export default {
     name: 'Admin_Orders',
     components:{
@@ -253,7 +253,7 @@ export default {
         //     var email = reauthenticateform['emailUser'].value;
         //     var password = reauthenticateform['userPass'].value;
         //     var credential = firebase.auth.EmailAuthProvider.credential(email, password);
-        //     const user = firebase.auth().currentUser;
+        //     const user = firebase.auth.currentUser;
         //     var vm = this
         //     if (email == 'poojapatil7142@gmail.com') {
         //         user.reauthenticateWithCredential(credential).then(function() {
@@ -273,7 +273,7 @@ export default {
     },
     mounted(){
         document.documentElement.scrollTop = 0
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
            if(user)
            {
                 // if (user.email == 'poojapatil7142@gmail.com') {

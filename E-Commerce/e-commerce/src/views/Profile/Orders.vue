@@ -38,8 +38,7 @@
 
 <script>
 import profile from './Profile'
-import firebase from 'firebase'
-import db from '../Firebase _Overview/init'
+import {db, auth} from '../Firebase _Overview/init'
 export default {
     name: 'Orders',
     components:{
@@ -57,7 +56,7 @@ export default {
     },
     created(){
         var vm=this
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
                 if(user)
                 {
                     this.$parent.loader = true

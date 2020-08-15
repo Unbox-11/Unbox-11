@@ -72,8 +72,7 @@
           integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
 <script>
-import firebase from 'firebase'
-import db from '../Firebase _Overview/init'
+import {db, auth} from '../Firebase _Overview/init'
 export default {
     name: 'AdminOrders',
     components:{
@@ -93,7 +92,7 @@ export default {
     methods:{
         deliver(){
             var vm = this;
-            firebase.auth().onAuthStateChanged(user =>{
+            auth.onAuthStateChanged(user =>{
                 if(user)
                 {
                     db.collection('admin_orders').doc(this.index).update({
@@ -116,7 +115,7 @@ export default {
             { scrollTop: "0" }, 100); 
         this.index = this.$route.params.id
         var vm=this
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
                 if(user)
                 {
                     db.collection('admin_orders').doc(this.index).onSnapshot(snapshot =>{

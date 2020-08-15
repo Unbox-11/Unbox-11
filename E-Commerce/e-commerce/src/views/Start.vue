@@ -30,7 +30,7 @@
                     <p></p>
                     <h4>{{product.data().name}}</h4>
                     <p class="text-muted"><strong>&#8377; {{product.data().price}}</strong>  <span class="card-text text-muted" style="text-decoration:line-through">&#8377; {{parseInt(product.data().price) + parseInt(product.data().price/2)}}</span></p>
-                    <button @click="goto(product.id)" class="btn btn-primary form-control">Buy Now</button>
+                    <button @click="goto(product.id, product.data().name)" class="btn btn-primary form-control">Buy Now</button>
                 </div>
             </li>
           </ol>
@@ -97,8 +97,7 @@
 
 <script>
 import { Carousel3d, Slide } from 'vue-carousel-3d';
-import firebase from 'firebase'
-import db from './Firebase _Overview/init'
+import { db } from './Firebase _Overview/init'
 export default {
     name: 'Start',
     components: {
@@ -130,8 +129,8 @@ export default {
                 {  scrollLeft: scroll+500 }, 1000);
       }
     },
-    goto(index){
-        this.$router.push({name:'Product',params:{id:index}})
+    goto(index, name){
+        this.$router.push({name:'Product',params:{id:index, name}})
     }
   },
   created(){

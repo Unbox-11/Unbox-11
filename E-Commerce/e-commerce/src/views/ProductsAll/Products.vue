@@ -69,7 +69,7 @@
             <h2><strong>All Products</strong></h2>
             <hr>
             <div class="index" align="center">
-                <div v-for="(product,index) in products" :key="index" @click="goto(product.id)" class="card order" style="max-width:20rem;" align="center">
+                <div v-for="(product,index) in products" :key="index" @click="goto(product.id, product.data().name)" class="card order" style="max-width:20rem;" align="center">
                     <img class="card-img-top" :src="product.data().imageLink" :alt="product.data().name">
                     <div class="card-body">
                         <h4 class="card-title">{{product.data().name}}</h4>
@@ -83,7 +83,7 @@
 </template>
 
 <script>
-import db from '../Firebase _Overview/init'
+import {db} from '../Firebase _Overview/init'
 export default {
     name: 'ProductsAll',
     components:{
@@ -95,8 +95,8 @@ export default {
         }
     },
     methods:{
-        goto(index){
-            this.$router.push({name:'Product',params:{id:index}})
+        goto(index, name){
+            this.$router.push({name:'Product',params:{id:index, name}})
         }
     },
     created(){

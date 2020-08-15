@@ -6,16 +6,24 @@
                     <img :src="product.imageLink" :alt="product.name">
                     <br>
                     <div class="buyproduct">
-                        <div class="row">
-                            <div class="col-xs-6 add col-sm-6 col-xs-6 col-md-6">
-                                <router-link :to="{name:'Product', params:{id:order.product[prdIndex].id}}">
+                        <div v-if="order.status.ordered_on.isDelivered" class="row">
+                            <div class="col-xl-6 add col-sm-6 col-xs-6 col-md-6">
+                                <router-link :to="{name:'Product', params:{id:order.product[prdIndex].id, name:product.name}}">
                                     <button class="btn float-left btn-default btn-lg addTocart">Review Product</button>
                                 </router-link>
                             </div>
-                            <div class="col-xs-6 add col-sm-6 col-xs-6 col-md-6">
-                                <router-link :to="{name:'Product', params:{id:order.product[prdIndex].id}}">
+                            <div class="col-xl-6 add col-sm-6 col-xs-6 col-md-6">
+                                <router-link :to="{name:'Product', params:{id:order.product[prdIndex].id, name:product.name}}">
                                     <button class="btn float-right btn-default btn-lg">Buy Again</button>
                                 </router-link>
+                            </div>
+                        </div>
+                        <div v-if="!order.status.ordered_on.isDelivered" class="row">
+                            <div v-if="!order.product[prdIndex].cancel" class="col-12">
+                                <button name="cancel" @click="cancelOrder" class="btn float-right btn-default btn-lg">Cancel Order</button>
+                            </div>
+                            <div v-if="order.product[prdIndex].cancel" class="col-12">
+                                <button name="cancel" disabled class="btn float-right btn-default btn-lg">Order Cancelled</button>
                             </div>
                         </div>
                     </div>
@@ -23,7 +31,7 @@
             </div>
              <div class="col-xl-8 col-lg-8 col-md-7 col-sm-6 col-xs-12">
                 <div class="container" align="left" style="z-index:1;">
-                    <router-link :to="{name:'Product',params:{id:order.product[prdIndex].id}}">
+                    <router-link v-if="product.name" :to="{name:'Product',params:{id:order.product[prdIndex].id, name:product.name}}">
                         <h3 style="display:table">{{product.name}}</h3>
                     </router-link>
                     <hr style="margin-top:-7px;">
@@ -34,6 +42,7 @@
                     <h3>Shape: {{order.product[prdIndex].shape}} </h3>
                     <h4>Payment Mode: {{order.payment}}</h4>
                     <h4>Ordered On: {{order.status.ordered_on.date.toDate()}}</h4>
+                    <h4 v-if="order.product[prdIndex].cancel">Cancelled On: {{order.product[prdIndex].cancel_on.toDate()}}</h4>
                     <h4 v-if="order.status.ordered_on.isDelivered">Delivered On: {{order.status.delivered_on.toDate()}}</h4>
                 </div>
             </div>
@@ -51,10 +60,10 @@
           integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
 <script>
-import firebase from 'firebase'
-import db from '../Firebase _Overview/init'
+import {db, auth} from '../Firebase _Overview/init'
+import axios from 'axios'
 export default {
-    name: 'Product',
+    name: 'OrdersInformation',
     components:{
 
     },
@@ -64,11 +73,63 @@ export default {
             prdIndex:null,
             product:[],
             order:[],
-            isDisplay:false
+            isDisplay:false,
         }
     },
     methods:{
-
+        cancelOrder(){
+            if (this.order.payment === "Card") {
+                var options = {
+                    amount: this.order.product[this.prdIndex].quantity * this.product.price,
+                    payment_id: this.order.payment_id
+                };
+                var vm = this
+                axios.post('/cancel_order', options).then(t=>{
+                    if (t.data.id) {
+                        
+                        vm.order.product[vm.prdIndex].cancel = true
+                        vm.order.product[vm.prdIndex].cancel_on =  new Date()
+                        vm.order.product[vm.prdIndex].refund_id = t.data.id
+                        var productArray = vm.order.product
+                        auth.onAuthStateChanged(user=>{
+                            if (user) {
+                                db.collection('user_orders').doc(user.uid).collection('userorder').doc(vm.index).update({
+                                    'product':productArray
+                                }).then(()=>{
+                                    db.collection('admin_orders').where('orderid', '==', vm.index).get().then(snapshot =>{
+                                        snapshot.forEach(element => {
+                                            db.collection('admin_orders').doc(element.id).update({
+                                                'product': productArray
+                                            })
+                                        });
+                                    })
+                                })
+                            }
+                        })
+                    }
+                })
+            } else {
+                vm.order.product[vm.prdIndex].cancel = true
+                vm.order.product[vm.prdIndex].cancel_on =  new Date()
+                var productArray = vm.order.product
+                auth.onAuthStateChanged(user=>{
+                    if (user) {
+                        db.collection('user_orders').doc(user.uid).collection('userorder').doc(vm.index).update({
+                            'product':productArray
+                        }).then(()=>{
+                            db.collection('admin_orders').where('orderid', '==', vm.index).get().then(snapshot =>{
+                                snapshot.forEach(element => {
+                                    db.collection('admin_orders').doc(element.id).update({
+                                        'product': productArray
+                                    })
+                                });
+                            })
+                        })
+                    }
+                })
+            }
+            
+        }
     },
     created(){
         $("html, body").animate( 
@@ -76,7 +137,7 @@ export default {
         this.index = this.$route.params.id
         this.prdIndex = this.$route.params.prdId
         var vm=this
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
                 if(user)
                 {
                     db.collection('user_orders').doc(user.uid).collection('userorder').doc(this.index).onSnapshot(snapshot =>{

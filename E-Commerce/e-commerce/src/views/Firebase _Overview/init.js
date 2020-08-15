@@ -11,7 +11,9 @@ var firebaseConfig = {
     measurementId: "G-7725TKDKRG"
   };
   // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig)
 firebase.analytics();
 
-export default firebase.firestore()
+export const db = firebase.firestore();
+export const auth = firebase.auth();
+export const storage = firebase.storage();

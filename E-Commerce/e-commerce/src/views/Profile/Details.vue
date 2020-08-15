@@ -166,7 +166,7 @@
  
 <script>
 import profile from './Profile'
-import db from '../Firebase _Overview/init'
+import {db, auth} from '../Firebase _Overview/init'
 import firebase from 'firebase'
 export default {
     name: 'Details',
@@ -237,7 +237,7 @@ export default {
             var email = reauthenticateform['emailUser'].value;
             var password = reauthenticateform['userPass'].value;
             var credential = firebase.auth.EmailAuthProvider.credential(email, password);
-            const user = firebase.auth().currentUser;
+            const user = firebase.auth.currentUser;
             var vm = this
             user.reauthenticateWithCredential(credential).then(function() {
                 vm.reauthenticate = false
@@ -255,7 +255,7 @@ export default {
             const form = document.querySelector('.forgetPasswordForm');
             var resetEmail = form["emailUser"].value;
             if (resetEmail != '') {
-                firebase.auth().sendPasswordResetEmail(resetEmail).then(function() {
+                auth.sendPasswordResetEmail(resetEmail).then(function() {
                     vm.forgetpass = false
                     vm.reauthenticate = true
                     vm.success = true
@@ -299,7 +299,7 @@ export default {
                     vm.error = false
                 }, 4000);
             }else{
-                const user = firebase.auth().currentUser;
+                const user = auth.currentUser;
                 user.updatePassword(confirmpass).then(function() {
                     vm.success = true
                     vm.Msg = 'Password Link Is SuccessFully Sent On Given Mail.'
@@ -330,7 +330,7 @@ export default {
         },
     },
     created(){
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
             if(user){
                 this.index = user.uid
                 this.email = user.email

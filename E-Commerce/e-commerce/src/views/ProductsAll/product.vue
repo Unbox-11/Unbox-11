@@ -11,7 +11,7 @@
                                 <button @click="addtocart(1, $event)" class="btn float-left btn-default btn-lg addTocart">Add to Cart</button>
                             </div>
                             <div class="col-xs-6 add col-sm-6 col-xs-6 col-md-6">
-                                <router-link @click.native="addtocart(0, $event)" :to="{name:'Order', params:{id:$route.params.id, quantity:quantity, size:sizeSelected, shape:shapeSelected}}">
+                                <router-link @click.native="addtocart(0, $event)" :to="{name:'Order', params:{id:$route.params.id, name:product.name, quantity:quantity, size:sizeSelected, shape:shapeSelected}}">
                                     <button class="btn float-right btn-default btn-lg">Buy Now</button>
                                 </router-link>
                             </div>
@@ -77,8 +77,7 @@
           integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
 <script>
-import firebase from 'firebase'
-import db from '../Firebase _Overview/init'
+import {db, auth} from '../Firebase _Overview/init'
 export default {
     name: 'Product',
     components:{
@@ -99,11 +98,11 @@ export default {
         addtocart(n, e){
             var target = e
             var vm = this
-            firebase.auth().onAuthStateChanged(user =>{
+            auth.onAuthStateChanged(user =>{
                 if(user)
                 {
                     db.collection('Cart').doc(user.uid).get().then(snapshot =>{
-                        vm.cart={id:vm.index, size:vm.sizeSelected, shape:vm.shapeSelected, quantity:vm.quantity}
+                        vm.cart={id:vm.index, size:vm.sizeSelected, shape:vm.shapeSelected, quantity:vm.quantity, cancel:false}
                         var docId = this.index+ vm.sizeSelected+ vm.shapeSelected
                         db.collection('Cart').doc(user.uid).update({
                             [docId]:vm.cart,
@@ -153,7 +152,7 @@ export default {
             this.$parent.loader = false
             this.isDisplay = true
         })
-        firebase.auth().onAuthStateChanged(user =>{
+        auth.onAuthStateChanged(user =>{
                 if(user)
                 {
                     db.collection('Cart').doc(user.uid).onSnapshot(snapshot =>{
