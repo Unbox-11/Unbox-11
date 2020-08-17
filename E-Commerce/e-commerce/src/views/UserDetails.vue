@@ -210,19 +210,19 @@ export default {
                 var addresses = [finalAddress]
                 auth.onAuthStateChanged(user=>{
                     if (user) {
-                        // db.collection('users').doc(this.index).update({
-                        //     country:'India',
-                        //     addresses:addresses,
-                        //     mobile_number:vm.mobile_number,
-                        //     name:vm.name,
-                        //     imagelink:this.data.imagelink,
-                        // }).catch(function (error) {
-                        //     vm.error = true
-                        //     vm.Msg = error.message
-                        //     setTimeout(() => {
-                        //         vm.error = false
-                        //     }, 4000);
-                        // }).then(() =>{
+                        db.collection('users').doc(this.index).update({
+                            country:'India',
+                            addresses:addresses,
+                            mobile_number:vm.mobile_number,
+                            name:vm.name,
+                            imagelink:this.data.imagelink,
+                        }).catch(function (error) {
+                            vm.error = true
+                            vm.Msg = error.message
+                            setTimeout(() => {
+                                vm.error = false
+                            }, 4000);
+                        }).then(() =>{
                             var templateParams = {
                                 name: vm.name,
                                 email:user.email,
@@ -244,7 +244,7 @@ export default {
                                 vm.success = false
                             }, 1000);
                             this.$router.push({name:"Start"})
-                //         })
+                        })
                 
                     }
                 })

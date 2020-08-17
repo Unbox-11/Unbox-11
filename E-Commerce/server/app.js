@@ -117,7 +117,7 @@ app.post('/send_email/welcome', async (req, res)=>{
     let username = req.body.name
     const msg = {
         to: useremail,
-        from: 'dipakpatil2615@gmail.com',
+        from: 'support@unbox_11.com',
         templateId:process.env.SENDGRID_WELCOME_TEMPLATE_ID,
         dynamic_template_data:{
             name:username
