@@ -83,6 +83,8 @@
 <script>
 import cities from './Profile/cities'
 import {db, auth} from './Firebase _Overview/init'
+import firebase from 'firebase'
+import axios from 'axios'
 export default {
     name: 'SignUp',
     components:{
@@ -136,7 +138,7 @@ export default {
                 
                 var newnum = '+91'+ this.mobile_number;
 
-                window.recaptchaVerifier = new auth.RecaptchaVerifier('verifyNumber',{
+                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('verifyNumber',{
                     'size': 'invisible',
                     'callback':function (response) {
                         return
@@ -172,7 +174,7 @@ export default {
             var vm = this
             auth.onAuthStateChanged(user=>{
                 if(user){
-                    var credential = auth.PhoneAuthProvider.credential(confirmationResult.verificationId, vm.OTP);
+                    var credential = firebase.auth.PhoneAuthProvider.credential(confirmationResult.verificationId, vm.OTP);
                     user.linkWithCredential(credential).then(function(usercred) {
                         $("#mobile_number").prop('disabled','true');
                         $("#verifyNumber").css('display','none')
@@ -208,30 +210,33 @@ export default {
                 var addresses = [finalAddress]
                 auth.onAuthStateChanged(user=>{
                     if (user) {
-                        db.collection('users').doc(this.index).update({
-                            country:'India',
-                            addresses:addresses,
-                            mobile_number:vm.mobile_number,
-                            name:vm.name,
-                            imagelink:this.data.imagelink,
-                        }).catch(function (error) {
-                            vm.error = true
-                            vm.Msg = error.message
-                            setTimeout(() => {
-                                vm.error = false
-                            }, 4000);
-                        }).then(() =>{
-                            // var templateParams = {
-                            //     name: vm.name,
-                            //     notes: 'Check this out!',
-                            //     email:user.email,
-                            // };
-                            // emailjs.send('gmail', 'template_Ueboteth', templateParams, 'user_ZcEhe9tTmsBCPXqOmoMUw')
-                            //     .then((result) => {
-                            //         console.log('SUCCESS!', result.status, result.text);
-                            //     }, (error) => {
-                            //         console.log('FAILED...', error);
-                            //     });
+                        // db.collection('users').doc(this.index).update({
+                        //     country:'India',
+                        //     addresses:addresses,
+                        //     mobile_number:vm.mobile_number,
+                        //     name:vm.name,
+                        //     imagelink:this.data.imagelink,
+                        // }).catch(function (error) {
+                        //     vm.error = true
+                        //     vm.Msg = error.message
+                        //     setTimeout(() => {
+                        //         vm.error = false
+                        //     }, 4000);
+                        // }).then(() =>{
+                            var templateParams = {
+                                name: vm.name,
+                                email:user.email,
+                            };
+                            console.log(user.email);
+                            axios.post('/send_email/welcome', templateParams).then((t)=>{
+                                vm.success = true
+                                vm.Msg = 'SuccessFully Done'
+                                setTimeout(() => {
+                                    vm.success = false
+                                }, 1000);
+                                this.$router.push({name:"Start"})
+                            })
+
                             
                             vm.success = true
                             vm.Msg = 'SuccessFully Done'
@@ -239,7 +244,7 @@ export default {
                                 vm.success = false
                             }, 1000);
                             this.$router.push({name:"Start"})
-                        })
+                //         })
                 
                     }
                 })

@@ -781,14 +781,14 @@ export default {
             if(user){ 
               if (this.payment === 'CashOnDelivery') {
                 db.collection('user_orders').doc(user.uid).collection('userorder').add({
-                      status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                      status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                       product:vm.carts,
                       selectedaddresses:vm.selectedAddress,
                       payment: vm.payment
                 }).then(result=>{
                   db.collection('Cart').doc(user.uid).delete()
                   db.collection('admin_orders').add({
-                      status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                      status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                       product:vm.carts,
                       selectedaddresses:vm.selectedAddress,
                       payment: vm.payment,
@@ -823,7 +823,7 @@ export default {
                         axios.post('/razorpay/verification', result).then((t)=>{
                           if (t.data.successful) {
                             db.collection('user_orders').doc(user.uid).collection('userorder').add({
-                              status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                              status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                               product:vm.carts,
                               selectedaddresses:vm.selectedAddress,
                               payment: vm.payment,
@@ -832,7 +832,7 @@ export default {
                               var prodid = vm.index + vm.size + vm.shape;
                               db.collection('Cart').doc(user.uid).delete()
                               db.collection('admin_orders').add({
-                                  status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                                  status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                                   product:vm.carts,
                                   selectedaddresses:vm.selectedAddress,
                                   payment: vm.payment,

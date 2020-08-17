@@ -351,7 +351,7 @@ export default {
             if(user){ 
               if (this.payment === 'CashOnDelivery') {
                 db.collection('user_orders').doc(user.uid).collection('userorder').add({
-                  status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                  status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                   product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape, cancel:false}],
                   selectedaddresses:this.selectedAddress,
                   payment: this.payment,
@@ -361,7 +361,7 @@ export default {
                     [prodid]:firebase.firestore.FieldValue.delete()
                   }).then(()=>{
                     db.collection('admin_orders').add({
-                        status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                        status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                         product:[{id:this.index, quantity:this.quantity, size:this.quantity, shape:this.shape}],
                         selectedaddresses:this.selectedAddress,
                         payment: this.payment,
@@ -397,7 +397,7 @@ export default {
                         axios.post('/razorpay/verification', result).then((t)=>{
                           if (t.data.successful) {
                             db.collection('user_orders').doc(user.uid).collection('userorder').add({
-                              status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                              status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                               product:[{id:vm.index, quantity:vm.quantity, size:vm.quantity, shape:vm.shape, cancel:false}],
                               selectedaddresses:vm.selectedAddress,
                               payment: vm.payment,
@@ -408,7 +408,7 @@ export default {
                                 [prodid]:firebase.firestore.FieldValue.delete()
                               }).then(()=>{
                                 db.collection('admin_orders').add({
-                                    status:{delivered_on:null, ordered_on:{date:new Date(), isDelivered:false}},
+                                    status:{delivered_on:null, ordered_on:new Date(), isDelivered:false},
                                     product:[{id:vm.index, quantity:vm.quantity, size:vm.quantity, shape:vm.shape}],
                                     selectedaddresses:vm.selectedAddress,
                                     payment: vm.payment,

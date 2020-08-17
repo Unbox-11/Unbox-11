@@ -6,7 +6,7 @@
                     <div class="buyproduct">
                         <div class="row">
                             <div class="col-12">
-                                <button :disabled="order.status.ordered_on.isDelivered" @click="deliver" class="btn float-left btn-default btn-lg" id="deliver">{{msg}}</button>
+                                <button :disabled="order.status.isDelivered" @click="deliver" class="btn float-left btn-default btn-lg" id="deliver">{{msg}}</button>
                             </div>
                         </div>
                     </div>
@@ -15,7 +15,7 @@
                     <h4><strong>Alternate Number</strong> - {{order.selectedaddresses.alternate_Number}}</h4>
                     <h4><strong>Address</strong> - {{order.selectedaddresses.address}}, {{order.selectedaddresses.locality}}, 
                         {{order.selectedaddresses.city}}, {{order.selectedaddresses.state}} - {{order.selectedaddresses.pincode}}</h4>
-                    <h4><strong>Status</strong> :- Ordered On: {{order.status.ordered_on.date.toDate()}} <span v-if="order.status.ordered_on.isDelivered"><br> Delivered On: {{order.status.delivered_on.toDate()}}</span></h4>
+                    <h4><strong>Status</strong> :- Ordered On: {{order.status.ordered_on.toDate()}} <span v-if="order.status.isDelivered"><br> Delivered On: {{order.status.delivered_on.toDate()}}</span></h4>
                     <h4><strong>Payment</strong> :- {{order.payment}}</h4>
                     <h4><strong>Total</strong> :- &#8377; {{total}}</h4>
                 </div>
@@ -96,11 +96,11 @@ export default {
                 if(user)
                 {
                     db.collection('admin_orders').doc(this.index).update({
-                        'status.ordered_on.isDelivered':true,
+                        'status.isDelivered':true,
                         'status.delivered_on': new Date()
                     }).then(()=>{
                         db.collection('user_orders').doc(user.uid).collection('userorder').doc(vm.order.productId).update({
-                            'status.ordered_on.isDelivered':true,
+                            'status.isDelivered':true,
                             'status.delivered_on': new Date()
                         }).then(()=>{
                             this.$router.push({name:'AdminOrders'})
@@ -129,7 +129,7 @@ export default {
                                 vm.total += data.data().price * product.quantity
                             })  
                         });
-                        if (snapshot.data().status.ordered_on.isDelivered) {
+                        if (snapshot.data().status.isDelivered) {
                             vm.msg = "Already Delivered"
                         } else {
                             vm.msg = "Deliver Product"

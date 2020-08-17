@@ -6,7 +6,7 @@
                     <img :src="product.imageLink" :alt="product.name">
                     <br>
                     <div class="buyproduct">
-                        <div v-if="order.status.ordered_on.isDelivered" class="row">
+                        <div v-if="order.status.isDelivered" class="row">
                             <div class="col-xl-6 add col-sm-6 col-xs-6 col-md-6">
                                 <router-link :to="{name:'Product', params:{id:order.product[prdIndex].id, name:product.name}}">
                                     <button class="btn float-left btn-default btn-lg addTocart">Review Product</button>
@@ -18,7 +18,7 @@
                                 </router-link>
                             </div>
                         </div>
-                        <div v-if="!order.status.ordered_on.isDelivered" class="row">
+                        <div v-if="!order.status.isDelivered" class="row">
                             <div v-if="!order.product[prdIndex].cancel" class="col-12">
                                 <button name="cancel" @click="cancelOrder" class="btn float-right btn-default btn-lg">Cancel Order</button>
                             </div>
@@ -41,9 +41,9 @@
                     <h3>Size: {{order.product[prdIndex].size}}</h3>
                     <h3>Shape: {{order.product[prdIndex].shape}} </h3>
                     <h4>Payment Mode: {{order.payment}}</h4>
-                    <h4>Ordered On: {{order.status.ordered_on.date.toDate()}}</h4>
+                    <h4>Ordered On: {{order.status.ordered_on.toDate()}}</h4>
                     <h4 v-if="order.product[prdIndex].cancel">Cancelled On: {{order.product[prdIndex].cancel_on.toDate()}}</h4>
-                    <h4 v-if="order.status.ordered_on.isDelivered">Delivered On: {{order.status.delivered_on.toDate()}}</h4>
+                    <h4 v-if="order.status.isDelivered">Delivered On: {{order.status.delivered_on.toDate()}}</h4>
                 </div>
             </div>
         </div>

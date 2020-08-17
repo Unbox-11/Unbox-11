@@ -169,7 +169,7 @@ table{
                                     {{product.data().selectedaddresses.address}}, {{product.data().selectedaddresses.locality}}, 
                                     {{product.data().selectedaddresses.city}}, {{product.data().selectedaddresses.state}} - {{product.data().selectedaddresses.pincode}}
                                 </td>
-                                <td>{{product.data().status.ordered_on.isDelivered}}</td>
+                                <td>{{product.data().status.isDelivered}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -193,7 +193,7 @@ table{
                                     {{product.data().selectedaddresses.address}}, {{product.data().selectedaddresses.locality}}, 
                                     {{product.data().selectedaddresses.city}}, {{product.data().selectedaddresses.state}} - {{product.data().selectedaddresses.pincode}}
                                 </td>
-                                <td>{{product.data().status.ordered_on.isDelivered}}</td>
+                                <td>{{product.data().status.isDelivered}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -284,7 +284,7 @@ export default {
                 //     this.isAdmin  = false
                 // }
                 var vm=this
-                db.collection('admin_orders').where('status.ordered_on.isDelivered', '==', false).orderBy('status.ordered_on.date', 'desc').onSnapshot(snapshot =>{
+                db.collection('admin_orders').where('status.isDelivered', '==', false).orderBy('status.ordered_on', 'desc').onSnapshot(snapshot =>{
 
                     let changes = snapshot.docChanges();
                     changes.forEach(change => {
@@ -305,7 +305,7 @@ export default {
                     });
 
                 })
-                db.collection('admin_orders').where('status.ordered_on.isDelivered', '==', true).orderBy('status.ordered_on.date', 'desc').onSnapshot(snapshot =>{
+                db.collection('admin_orders').where('status.isDelivered', '==', true).orderBy('status.ordered_on', 'desc').onSnapshot(snapshot =>{
 
                     let changes = snapshot.docChanges();
                     changes.forEach(change => {
