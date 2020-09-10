@@ -13,7 +13,7 @@ const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 
-if (process.env.NODE_ENV = 'production') {
+if (process.env.NODE_ENV === 'production') {
     app.use(express.static(__dirname + '/public/'))
     app.get(/.*/, (req,res) => res.sendFile(__dirname + '/public/index.html') )
 }
@@ -117,7 +117,7 @@ app.post('/send_email/welcome', async (req, res)=>{
     let username = req.body.name
     const msg = {
         to: useremail,
-        from: 'support@unbox_11.com',
+        from: 'dipakpatil215@gmail.com',
         templateId:process.env.SENDGRID_WELCOME_TEMPLATE_ID,
         dynamic_template_data:{
             name:username

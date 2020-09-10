@@ -60,7 +60,7 @@ export default {
                 if(user)
                 {
                     this.$parent.loader = true
-                    db.collection('user_orders').doc(user.uid).collection('userorder').orderBy('status.ordered_on.date', 'desc').onSnapshot(snapshot =>{
+                    db.collection('user_orders').doc(user.uid).collection('userorder').orderBy('status.ordered_on', 'desc').onSnapshot(snapshot =>{
                         let changes = snapshot.docChanges();
                         changes.forEach(change => {
                             if (change.type == 'added') {
@@ -87,6 +87,7 @@ export default {
                             vm.Notany = true
                             vm.isDisplay = false
                         }
+                        
                     })
                 }
         })
